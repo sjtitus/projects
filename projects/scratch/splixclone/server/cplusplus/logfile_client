@@ -1,0 +1,23 @@
+2017-02-12 03:01:48.315221     info:                     main: client main start
+2017-02-12 03:01:48.315377     info:                     main: starting worker thread
+2017-02-12 03:01:48.315394     info:              StartThread: worker starting thread
+2017-02-12 03:01:48.315438     info:                     main: joining worker
+2017-02-12 03:01:48.315513     info:               ThreadMain: new worker threadmain: 7fd26915b700
+2017-02-12 03:01:48.315574    debug:       LocalSocketSession: construct no handler:0x7fd264000c50
+2017-02-12 03:01:48.315593     info:               ThreadMain: connecting to /tmp/foo
+2017-02-12 03:01:48.315606    debug:                  Connect: sync connect to /tmp/foo
+2017-02-12 03:01:48.315931    debug:        SetMessageHandler: setting handler: 0x7fd26915abd0
+2017-02-12 03:01:48.315957    debug:             WriteMessage: asynch write message, message='Hello, client world!'
+2017-02-12 03:01:48.315974    debug:             WriteMessage: queued message size: 22
+2017-02-12 03:01:48.316233     info:               ThreadMain: running IO service
+2017-02-12 03:01:48.316262    debug:            WriteCallback: written message size: 22
+2017-02-12 03:01:48.316278    debug:            WriteCallback: invoking write callback
+2017-02-12 03:01:48.316289     info:              HandleWrite: ClientHandler: message written: 22 bytes
+2017-02-12 03:01:48.316301     info:              HandleWrite: ClientHandler: reading response
+2017-02-12 03:01:48.316312    debug:              ReadMessage: asynch read message
+2017-02-12 03:01:48.316345    debug:             ReadCallback: receiving message
+2017-02-12 03:01:48.316363    error:             ReadCallback: ERROR reading messaage: End of file
+2017-02-12 03:01:48.316375    debug:             ReadCallback: handling error
+2017-02-12 03:01:48.316386     info:          HandleReadError: ClientHandler: read error: End of file
+2017-02-12 03:01:48.316399     info:               ThreadMain: IO service done
+2017-02-12 03:01:48.316827     info:                     main: done

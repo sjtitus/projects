@@ -1,0 +1,4 @@
+2017-01-26 03:26:08.264244    debug:             CreatePlayer: calling endpoint /tmp/SplixGame_Command to create player on game server
+2017-01-26 03:26:08.264360    debug:       LocalSocketSession: construct:0x215bae0
+2017-01-26 03:26:08.264389    debug:       LocalSocketSession: construct:0x215bc60
+2017-01-26 03:26:08.264405    debug:                  Connect: synchronous connect to /tmp/SplixGame_Command

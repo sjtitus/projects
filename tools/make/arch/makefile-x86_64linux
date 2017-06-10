@@ -1,0 +1,75 @@
+#==============================================================================
+# 
+# Echo360    echo_makefile-Linux
+# 
+# Architecture-specific makefile for Linux
+#
+#==============================================================================
+
+ifeq ($(CROSS_COMPILE),)
+  CROSS_COMPILE := 
+endif
+
+# arch-specific suffixes 
+SUFFIX_SHLIB 	= so
+PREFIX_LIB 		= lib
+SUFFIX_LIB 		= a
+
+# build utilities 
+GCC 		= $(CROSS_COMPILE)gcc
+GXX 		= $(CROSS_COMPILE)g++
+AR  		= $(CROSS_COMPILE)ar
+CPP 		= $(CROSS_COMPILE)cpp
+RANLIB      = $(CROSS_COMPILE)ranlib
+MAKEDEPEND 	= $(GCC) -MM
+STRIP		= $(CROSS_COMPILE)strip --strip-debug --keep-file-symbols
+
+# OS utilities 
+SHELL 		:= /bin/bash
+RM    		:= /bin/rm -f
+DELTREE 	:= /bin/rm -rf
+SED   		:= $(shell which sed) 
+EGREP		:= $(shell which egrep) 
+
+# Compiler FLAGS 
+ifneq ($(CPU_ARCH),ppc)
+   CFLAGS       += -DHAVE_MKSTEMP -DFIRMWARE_SRC_SUFFIX=\"_x86\"
+   CXXFLAGS     += -DHAVE_MKSTEMP -DFIRMWARE_SRC_SUFFIX=\"_x86\" -Wno-non-virtual-dtor
+endif
+
+#CFLAGS 		+= -D_REENTRANT
+#CXXFLAGS 	+= -D_REENTRANT -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+CFLAGS 		+= -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+CXXFLAGS 	+= -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+WARN	    := -Wall -Werror 
+
+# LDFLAGS are used when linking to create an exe 
+#LDFLAGS     := -static
+ifeq ($(PROJECT_TYPE),shlib)
+  PICFLAGS := -fPIC
+  # SH_LDFLAGS are used when linking to create a shared lib
+  SH_LDFLAGS  := -shared
+endif
+
+ifneq ($(CPU_ARCH),ppc)
+ifeq ($(OS_TEST),x86_64)
+	ifeq ($(USE_64),1)
+		CPU_ARCH = x86_64
+	else
+		CPU_ARCH = x86
+		CFLAGS += -m32
+	endif
+else
+	CPU_ARCH = x86
+endif
+endif
+
+ifeq ($(BUILD_TYPE),debug)
+  CFLAGS 	+= -DDEBUG -g3 -O0
+  CXXFLAGS 	+= -DDEBUG -g3 -O0
+endif
+
+ifeq ($(BUILD_TYPE),release)
+  CFLAGS 	+= -DNDEBUG -g -O2
+  CXXFLAGS 	+= -DNDEBUG -g -O2
+endif

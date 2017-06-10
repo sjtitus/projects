@@ -1,0 +1,19 @@
+{
+  "name": "splixclone",
+  "version": "1.0.0",
+  "description": "A splix clone for programming practice and to add features",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "stitus",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.16.1",
+    "express": "^4.14.1",
+    "method-override": "^2.3.7",
+    "morgan": "^1.8.1",
+    "mysql": "^2.13.0",
+    "ws": "^1.1.2"
+  }
+}

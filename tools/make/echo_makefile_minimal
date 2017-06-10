@@ -1,0 +1,536 @@
+#==============================================================================
+#
+# 	echo_makefile		Echo360 "master" makefile
+#
+# 	This makefile is included by all echo360 makefiles. 
+#
+# 	It enforces all default makefile behavior, defines useful variables, 
+# 	targets, tools, etc.
+#
+#==============================================================================
+
+#___________________________________________________________
+# Project and build types 
+PROJECT_TYPES := lib exe shlib
+BUILD_TYPES   := debug release
+
+#___________________________________________________________
+# Platforms for which the project may be built.
+ifndef PROJECT_PLATFORMS 
+PROJECT_PLATFORMS := mac x86linux ppclinux armlinux
+endif
+
+#___________________________________________________________
+# host we're building on 
+HOST := $(shell hostname)
+
+#___________________________________________________________
+# location of master and makefile and arch-specific 
+# makefile dir 'make_arch'
+ifndef ECHO_MAKE_ROOT
+  $(error makefile must set variable ECHO_MAKE_ROOT to dir where echo master makefile resides) 
+endif
+
+#___________________________________________________________
+# set the dir where arch-specific makefiles reside 
+ECHO_MAKE_ARCH_ROOT := $(ECHO_MAKE_ROOT)/make_arch
+
+#___________________________________________________________
+# the project directory = pwd 
+PROJECT_DIR  := $(CURDIR)
+
+#___________________________________________________________
+# project name defaults to dir name 
+ifndef PROJECT_NAME
+  PROJECT_NAME := $(notdir $(PROJECT_DIR))
+endif
+
+#___________________________________________________________
+# project type: must be one of PROJECT_TYPES 
+ifdef PROJECT_TYPE
+  ifeq (,$(findstring $(PROJECT_TYPE),$(PROJECT_TYPES)))
+    $(error Unsupported project type $(PROJECT_TYPE), must be one of [$(PROJECT_TYPES)])
+  endif
+endif
+
+#___________________________________________________________
+# build type: must be one of BUILD_TYPES 
+ifndef BUILD_TYPE
+  BUILD_TYPE := debug
+else
+  ifeq (,$(findstring $(BUILD_TYPE),$(BUILD_TYPES)))
+    $(error unsupported build type $(BUILD_TYPE), must be one of [$(BUILD_TYPES)])
+  endif
+endif
+
+#___________________________________________________________
+# detect platform architecture automatically if it 
+# hasn't been provided
+ifndef ARCH
+  $(error must define ARCH (explictly, or by including makefile 'echo_makefile_archdetect'))
+endif
+
+
+#___________________________________________________________
+# bail out if the architecture is not supported
+# note: supported architectures are those that have a
+# makefile 'echo_makefile-<arch>' in the arch-specific 
+# makefile directory.
+SUPPORTED_ARCHES := $(shell ls $(ECHO_MAKE_ARCH_ROOT)/echo_makefile-* | sed s:.*echo_makefile-::)
+TMP := $(shell ls $(ECHO_MAKE_ARCH_ROOT)/echo_makefile-$(ARCH) 2> /dev/null)
+ifeq ($(TMP),)
+   $(error unrecognized ARCH '$(ARCH)' : must be one of: $(SUPPORTED_ARCHES)) 
+endif
+
+#___________________________________________________________
+# include architecture-specific makefile
+# defines build utils, os utils, compiler flags, etc. 
+# depends on BUILD_TYPE
+CFLAGS += -D__$(ARCH)__
+CXXFLAGS += -D__$(ARCH)__
+include $(ECHO_MAKE_ARCH_ROOT)/echo_makefile-$(ARCH)
+
+
+#______________________________________________________________________________
+# BUILD_ROOT is the root of the hierarchy where all build outputs 
+# will reside. The intermediate files will be placed in hierarchy that 
+# exactly mirrors the source tree hierarchy; this hierarchy will reside in 
+# BUILD_ROOT/build/.
+# 
+# The project directory from which make is being invoked is typically 
+# underneath BUILD_ROOT, so that the relative path of the user project can 
+# be determined by make. 
+#
+# The shell script below is used in the case where the user does not define
+# BUILD_ROOT. It just traverses up the dir hierarchy until it sees a parent 
+# dir with a 'build' subdir, and uses this as BUILD_ROOT. If no such parent 
+# is found, it will just use '.', which will result in a build dir getting 
+# created underneath the current directory.
+#
+ifeq ($(BUILD_ROOT),)
+  BUILD_ROOT := $(shell                         \
+    p=$(PROJECT_DIR);                           \
+    a=$$p;                                      \
+    b='/';                                      \
+    cd $$a;                                     \
+    while [ ! -d $$a/build ] && [ $$a != "/" ]; \
+    do                                          \
+        cd ..;                                  \
+        a=`pwd`;                                \
+    done                ;                       \
+    if [ ! -d $$a/build ];                      \
+    then                                        \
+        a='BUILD_ROOT_ERROR';                   \
+    fi ;                                        \
+   echo $$a)
+endif
+
+ifeq ($(BUILD_ROOT),BUILD_ROOT_ERROR)
+   $(error can not determine build root (you must have dir 'build' in your hierarchy)) 
+   #BUILD_ROOT := .
+endif
+
+#______________________________________________________________________________
+# relative path of current project wrt BUILD_ROOT 
+ifneq ($(BUILD_ROOT),.)
+  BUILD_RELPATH := $(shell echo $(PROJECT_DIR) | $(SED) s,^$(BUILD_ROOT)/,,g)
+  # if current proj is not underneath BUILD_ROOT, we can't impose any
+  # hierarchy on the BUILD_ROOT tree
+  ifeq ($(BUILD_RELPATH),$(PROJECT_DIR))
+    BUILD_RELPATH := .
+  endif
+else
+  BUILD_RELPATH := .
+endif
+
+#______________________________________________________________________________
+# directory for project-specific build outputs 
+# mirrored source hierarchy located underneath BUILD_ROOT/build/<arch>
+BUILD_DIR := $(BUILD_ROOT)/build/$(ARCH)/$(BUILD_RELPATH)/$(BUILD_TYPE)
+BUILD_DIR := $(shell echo $(BUILD_DIR) | $(SED) s,//,/,g)
+BUILD_DIR := $(shell echo $(BUILD_DIR) | $(SED) s,/./,/,g)
+
+
+#______________________________________________________________________________
+# directory where project's third party dependencies live 
+ifdef THIRDPARTY_DEPENDENCIES
+   ifndef THIRDPARTY_HOME
+      $(error must set THIRDPARTY_HOME if THIRDPARTY_DEPENDENCIES are set)
+   endif
+   THIRDPARTY_DIST_DIR := $(THIRDPARTY_HOME)/dist/$(ARCH)
+endif
+
+
+#______________________________________________________________________________
+# dirs where projects binaries, libs, src, and includes live 
+PROJ_BIN := $(BUILD_DIR)/bin
+PROJ_SRC := $(PROJECT_DIR)/src
+PROJ_LIB := $(BUILD_DIR)/lib
+PROJ_INC := $(PROJECT_DIR)/inc $(PROJECT_DIR)/include
+ifneq ($(INC_DIRS),)
+   PROJ_INC += $(INC_DIRS)
+endif
+
+#______________________________________________________________________________
+# project output dir and file 
+ifeq ($(PROJECT_TYPE),exe)
+  PROJ_DIR_OUT := $(PROJ_BIN)
+  PROJ_FILE_OUT := $(PROJ_DIR_OUT)/$(PREFIX_EXE)$(PROJECT_NAME)
+endif 
+ifeq ($(PROJECT_TYPE),lib)
+  PROJ_DIR_OUT := $(PROJ_LIB)
+  PROJ_FILE_OUT := $(PROJ_DIR_OUT)/$(PREFIX_LIB)$(PROJECT_NAME).$(SUFFIX_LIB)
+endif
+ifeq ($(PROJECT_TYPE),shlib)
+  PROJ_DIR_OUT := $(PROJ_LIB)
+  PROJ_FILE_OUT := $(PROJ_DIR_OUT)/$(PREFIX_LIB)$(PREFIX_SHLIB)$(PROJECT_NAME).$(SUFFIX_SHLIB)
+endif
+
+
+##
+## ONLY DO A BUILD FOR SUPPORTED PLATFORMS
+##
+ifeq (,$(findstring $(ARCH),$(PROJECT_PLATFORMS)))
+
+all allclean test:
+	@echo "===> echo_build: project '$(PROJECT_NAME)': platforms for project = ( $(PROJECT_PLATFORMS) )" 
+	@echo "===> echo_build: project '$(PROJECT_NAME)': project not included for platform '$(ARCH)', skipping" 
+
+clean::
+	@echo "===> echo_build: project '$(PROJECT_NAME)': platforms for project = ( $(PROJECT_PLATFORMS) )" 
+	@echo "===> echo_build: project '$(PROJECT_NAME)': project not included for platform '$(ARCH)', skipping" 
+
+else
+
+####
+#### BEGIN: PLATFORM IS IN SUPPORTED_PLATFORMS
+####
+
+
+#______________________________________________________________________________
+# source files
+ifdef PROJECT_TYPE
+   ifndef C_SRC
+      ifndef CXX_SRC
+         $(error project '$(PROJECT_NAME)' of type '$(PROJECT_TYPE)' must define C_SRC and/or CXX_SRC)
+      endif
+   endif
+endif 
+
+#______________________________________________________________________________
+# build dirs for project dependencies 
+# these are specified in makefile with paths relative to build root 
+#DEP_PATHS    := $(shell echo "$(DEPENDENCIES)" | $(SED) 's,$(BUILD_ROOT),$(BUILD_ROOT)/build/$(ARCH),g')
+ifdef DEPENDENCIES
+   DEP_PATHS := $(addprefix $(BUILD_ROOT)/build/$(ARCH)/,$(addsuffix /$(BUILD_TYPE),$(DEPENDENCIES)))
+endif
+
+#______________________________________________________________________________
+# object files
+C_OBJ   := $(patsubst %.c,$(BUILD_DIR)/%.o, $(C_SRC))
+CXX_OBJ := $(patsubst %.cpp,$(BUILD_DIR)/%.o, $(CXX_SRC))
+OBJ     := $(C_OBJ) $(CXX_OBJ)
+
+
+#______________________________________________________________________________
+# lib directory (-L) flags 
+LIB_DIRFLAGS  = $(addprefix -L,$(LIB_DIRS))
+ifdef DEPENDENCIES
+   LIB_DEPDIRFLAGS := $(addprefix -L,$(addsuffix /lib,$(DEP_PATHS)))
+   LIB_DIRFLAGS += $(LIB_DEPDIRFLAGS)
+endif
+
+#______________________________________________________________________________
+# external lib directory (-L) flags
+ifdef EXTERNAL_DEPENDENCIES
+   LIB_DIRFLAGS += $(addprefix -L$(EXTERNAL_BUILD_ROOT)/build/$(ARCH)/,\
+                   $(addsuffix /$(BUILD_TYPE)/lib,$(EXTERNAL_DEPENDENCIES)))
+endif
+
+#______________________________________________________________________________
+# inc directory (-I) flags 
+INC_FLAGS 	 = $(addprefix -I,$(PROJ_INC))
+ifdef DEPENDENCIES
+   INC_FLAGS    += $(addprefix -I$(BUILD_ROOT)/,$(addsuffix /inc,$(DEPENDENCIES))) 
+   INC_FLAGS    += $(addprefix -I$(BUILD_ROOT)/,$(addsuffix /include,$(DEPENDENCIES))) 
+endif
+
+#______________________________________________________________________________
+# inc directory (-I) flags 
+INC_FLAGS 	+= $(addprefix -I,$(PROJ_INC))
+ifdef EXTERNAL_DEPENDENCIES
+   INC_FLAGS    += $(addprefix -I$(EXTERNAL_BUILD_ROOT)/,$(addsuffix /inc,$(EXTERNAL_DEPENDENCIES))) 
+   INC_FLAGS    += $(addprefix -I$(EXTERNAL_BUILD_ROOT)/,$(addsuffix /include,$(EXTERNAL_DEPENDENCIES))) 
+endif
+
+#______________________________________________________________________________
+# add thirdparty dependency dirs to -L, -I flags
+ifdef THIRDPARTY_DEPENDENCIES
+  THIRDPARTY_CHECK := $(shell                                                                   \
+    ret="OK";                                                                                   \
+    if [ ! -d $(THIRDPARTY_DIST_DIR) ]; then                                                    \
+      ret=" === ERROR ===: thirdparty dir '$(THIRDPARTY_DIST_DIR)' not found";                  \
+    else                                                                                        \
+     for d in `echo $(THIRDPARTY_DEPENDENCIES)`;                                                \
+     do                                                                                         \
+        if [ ! -d "$(THIRDPARTY_DIST_DIR)/$$d" ]; then                                          \
+           ret=" === ERROR ===: thirdparty package dir '$(THIRDPARTY_DIST_DIR)/$$d' not found"; \
+           break;                                                                               \
+        fi;                                                                                     \
+     done;                                                                                      \
+    fi;                                                                                         \
+    echo $$ret)
+ifneq ($(THIRDPARTY_CHECK),OK)
+   $(error $(THIRDPARTY_CHECK)) 
+endif
+  LIB_DIRFLAGS += $(addsuffix /lib,$(addprefix -L$(THIRDPARTY_DIST_DIR)/,$(THIRDPARTY_DEPENDENCIES)))
+  INC_FLAGS += $(addsuffix /include,$(addprefix -I$(THIRDPARTY_DIST_DIR)/,$(THIRDPARTY_DEPENDENCIES)))
+endif
+
+
+#______________________________________________________________________________
+# lib file (-l) flags  
+LIB_FLAGS 	  = $(addprefix -l,$(LIBS))
+
+#______________________________________________________________________________
+# dynamic library load path 
+ifdef DEPENDENCIES
+   DL_PATH      := $(addsuffix /lib,$(BUILD_DIR) $(DEP_PATHS))
+   DL_PATH      := $(shell echo "$(DL_PATH)" | $(SED) 's, ,:,g') 
+endif
+
+
+
+#______________________________________________________________________________
+# targets
+
+# top target
+all: SUBDIRS_TARGET = all
+ifneq ($(PROJECT_TYPE),)
+all: msg_start subdirs $(DEPENDENCIES) $(EXTERNAL_DEPENDENCIES) dirs $(PROJ_FILE_OUT) post_build_hook msg_done
+else
+# no output: just build dependencies and sub-projects
+all: msg_start subdirs $(DEPENDENCIES) $(EXTERNAL_DEPENDENCIES) msg_done
+endif
+
+
+# output target 
+ifeq ($(PROJECT_TYPE),exe)
+.PHONY: $(PROJ_FILE_OUT)
+$(PROJ_FILE_OUT): $(OBJ)
+	@echo "===> echo_build: project '$(PROJECT_NAME)': linking executable" 
+	$(GXX) -o $@ $(WARN) $(OBJ) $(INC_FLAGS) $(LIB_DIRFLAGS) $(LIB_FLAGS) $(LDFLAGS) $(EXPLICIT_LIBS)
+# don't strip in debug mode
+ifneq (debug,$(BUILD_TYPE))
+	@echo "===> echo_build: project '$(PROJECT_NAME)': stripping executable"
+	@echo "copying unstripped executable"
+	@cp -f $@ $@-unstripped
+	$(STRIP) $@ 
+endif
+endif
+
+ifeq ($(PROJECT_TYPE),lib)
+$(PROJ_FILE_OUT): $(OBJ)
+	@echo "===> echo_build: project '$(PROJECT_NAME)': archiving static library" 
+ifdef STATIC_LIB_TARGET
+	@mkdir -p $(dir $(STATIC_LIB_TARGET))
+	$(AR) cru $(STATIC_LIB_TARGET) $^
+	$(RANLIB) $(STATIC_LIB_TARGET)
+else
+	-rm -rf $@
+	$(AR) cru $@ $^
+	$(RANLIB) $@
+endif
+endif
+
+ifeq ($(PROJECT_TYPE),shlib)
+$(PROJ_FILE_OUT): $(OBJ)
+	@echo "===> echo_build: project '$(PROJECT_NAME)': linking shared library"
+	$(GXX) -o $@ $(WARN) $(OBJ) $(INC_FLAGS) $(LIB_DIRFLAGS) $(LIB_FLAGS) $(SH_LDFLAGS) $(EXPLICIT_LIBS)
+endif
+
+
+# compile targets
+# c files 
+$(BUILD_DIR)/%.o : %.c $(BUILD_DIR)/%.d
+	@-mkdir -p $(dir $@)
+	$(GCC) -o $@ -c $(INC_FLAGS) $(WARN) $(PICFLAGS) $(CFLAGS) $< 
+
+# c++ files
+$(BUILD_DIR)/%.o : %.cpp $(BUILD_DIR)/%.d
+	@-mkdir -p $(dir $@)
+	$(GXX) -o $@ -c $(INC_FLAGS) $(WARN) $(PICFLAGS) $(CXXFLAGS) $< 
+
+# 'make depend' dependency files
+$(BUILD_DIR)/%.d : %.c
+	@-mkdir -p $(dir $@)
+	@ARCH=$(ARCH) $(MAKEDEPEND) $(CFLAGS) $(INC_FLAGS) $< -MF $@.$$$$;  \
+	$(SED) 's,\(.*\)\.o[ :]*,$(BUILD_DIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	$(RM) $@.$$$$
+
+$(BUILD_DIR)/%.d : %.cpp
+	@-mkdir -p $(dir $@)
+	@ARCH=$(ARCH) $(MAKEDEPEND) $(CXXFLAGS) $(INC_FLAGS) $< -MF $@.$$$$; \
+	$(SED) 's,\(.*\)\.o[ :]*,$(BUILD_DIR)/\1.o $@ : ,g' < $@.$$$$ > $@;  \
+	$(RM) $@.$$$$
+
+
+# clean: easy...just nuke the build dir
+clean::
+	@echo "===> echo_build: project '$(PROJECT_NAME)': cleaning" 
+ifneq ($(PROJECT_TYPE),)
+	$(DELTREE) $(BUILD_DIR)
+ifdef STATIC_LIB_TARGET
+	$(DELTREE) $(STATIC_LIB_TARGET)
+endif
+#	$(DELTREE) $(PROJ_LIB)
+#	$(DELTREE) $(PROJ_BIN)
+else
+	@echo "===> echo_build: project '$(PROJECT_NAME)': no output, nothing to clean" 
+endif
+
+# allclean: recursive clean that cleans dependencies as well
+allclean: SUBDIRS_TARGET = allclean
+allclean: msg_ac_start subdirs $(DEPENDENCIES) clean msg_ac_done
+
+# sub-project builds
+.PHONY : subdirs $(SUBDIRS)
+subdirs: $(SUBDIRS) 
+$(SUBDIRS):
+	@echo "===> echo_build: [ sub-project $@ ($(SUBDIRS_TARGET)) ]"
+	ARCH=$(ARCH) $(MAKE) -C $@ $(SUBDIRS_TARGET)
+	@echo "===> echo_build: [ sub-project $@: ($(SUBDIRS_TARGET)) complete ]"
+
+
+# build dependent projects 
+ifdef DEPENDENCIES
+.PHONY : $(DEPENDENCIES)
+$(DEPENDENCIES):
+	@echo "===> echo_build: [ project '$(PROJECT_NAME)': building dependency $(BUILD_ROOT)/$@ <===== ]"
+	ARCH=$(ARCH) $(MAKE) -C $(BUILD_ROOT)/$@ $(SUBDIRS_TARGET)
+	@echo "===> echo_build: [ project '$(PROJECT_NAME)': building dependency $(BUILD_ROOT)/$@  complete <===== ]"
+endif 
+
+
+# build external dependent projects - projects in another tree.
+# this should have EXTERN_BUILD_ROOT set.
+ifneq ($(EXTERNAL_DEPENDENCIES),)
+  ifndef EXTERNAL_BUILD_ROOT
+    $(error If EXTERNAL_DEPENDENCIES is set, then so must be EXTERNAL_BUILD_ROOT.)
+  endif
+.PHONY : $(EXTERNAL_DEPENDENCIES)
+$(EXTERNAL_DEPENDENCIES):
+	@echo "===> echo_build: [ project '$(PROJECT_NAME)': building external dependency $(EXTERNAL_BUILD_ROOT)/$@ <===== ]"
+	ARCH=$(ARCH) $(MAKE) -C $(EXTERNAL_BUILD_ROOT)/$@ $(SUBDIRS_TARGET)
+	@echo "===> echo_build: [ project '$(PROJECT_NAME)': building external dependency $(EXTERNAL_BUILD_ROOT)/$@  complete <===== ]"
+endif 
+
+
+# create directories
+.PHONY : dirs
+dirs: $(BUILD_DIR) $(PROJ_DIR_OUT)
+
+$(BUILD_DIR):
+	@mkdir -p $(BUILD_DIR)
+
+$(PROJ_DIR_OUT):
+	@mkdir -p $(PROJ_DIR_OUT)
+
+
+# User-friendly msgs
+.PHONY : msg_start msg_done msg_ac_start msg_ac_done 
+msg_start:
+	@echo "===> echo_build: project '$(PROJECT_NAME)': build start ($(PROJECT_TYPE), $(BUILD_TYPE) [pid=$$$$])"
+
+msg_done:
+	@echo "===> echo_build: project '$(PROJECT_NAME)': build complete: ** SUCCESS **" 
+ifneq ($(PROJECT_TYPE),)
+ifdef STATIC_LIB_TARGET
+	@echo "===> echo_build: project '$(PROJECT_NAME)' output: $(STATIC_LIB_TARGET)"
+else
+	@echo "===> echo_build: project '$(PROJECT_NAME)' output: $(PROJ_FILE_OUT)"
+endif
+endif
+
+msg_ac_start:
+	@echo "===> echo_build: project '$(PROJECT_NAME)': recursive clean" 
+
+msg_ac_done:
+	@echo "===> echo_build: project '$(PROJECT_NAME)': recursive clean complete" 
+
+# post build hook
+.PHONY : post_build_hook
+post_build_hook::
+	@echo "===> echo_build: project '$(PROJECT_NAME)': post build hook start" 
+
+
+####
+#### END: IF PLATFORM IS IN SUPPORTED_PLATFORMS
+####
+endif
+
+# dump make environment info
+.PHONY : info
+info:
+	@echo ""
+	@echo "====================================================================================================="
+	@echo "| Echo Build Environment: project '$(PROJECT_NAME)'"
+	@echo "| ----------------------"
+	@echo "|"    
+	@echo "|   ECHO_MAKE_ROOT = '$(ECHO_MAKE_ROOT)'"
+	@echo "|   HOST = '$(HOST)'"
+	@echo "|   ARCH = '$(ARCH)'"
+	@echo "|   SUPPORTED_ARCHES = '$(SUPPORTED_ARCHES)'"
+	@echo "|   PROJECT_PLATFORMS ='$(PROJECT_PLATFORMS)'"
+	@echo "|"    
+	@echo "|   BUILD_ROOT = '$(BUILD_ROOT)'"
+	@echo "|   BUILD_TYPE ='$(BUILD_TYPE)'"
+	@echo "|   BUILD_DIR ='$(BUILD_DIR)'"
+	@echo "|   BUILD_RELPATH ='$(BUILD_RELPATH)'"
+	@echo "|"    
+	@echo "|   DEPENDENCIES ='$(DEPENDENCIES)'"
+	@echo "|   DEP_PATHS ='$(DEP_PATHS)'"
+	@echo "|"
+	@echo "|   EXTERNAL_DEPENDENCIES ='$(EXTERNAL_DEPENDENCIES)'"
+	@echo "|   EXTERNAL_BUILD_ROOT ='$(EXTERNAL_BUILD_ROOT)'"
+	@echo "|"    
+	@echo "|   THIRDPARTY_HOME ='$(THIRDPARTY_HOME)'"
+	@echo "|   THIRDPARTY_DEPENDENCIES ='$(THIRDPARTY_DEPENDENCIES)'"
+	@echo "|   THIRDPARTY_DIST_DIR ='$(THIRDPARTY_DIST_DIR)'"
+	@echo "|"    
+	@echo "|   PROJECT_DIR ='$(PROJECT_DIR)'"
+	@echo "|   PROJECT_NAME ='$(PROJECT_NAME)'"
+	@echo "|   PROJECT_TYPE ='$(PROJECT_TYPE)'"
+	@echo "|   INC_DIRS ='$(INC_DIRS)'"
+	@echo "|   LIB_DIRS ='$(LIB_DIRS)'"
+	@echo "|   PROJ_BIN ='$(PROJ_BIN)'"
+	@echo "|   PROJ_SRC ='$(PROJ_SRC)'"
+	@echo "|   PROJ_LIB ='$(PROJ_LIB)'"
+	@echo "|   PROJ_INC ='$(PROJ_INC)'"
+	@echo "|   PROJ_DIR_OUT ='$(PROJ_DIR_OUT)'"
+	@echo "|   PROJ_FILE_OUT ='$(PROJ_FILE_OUT)'"
+	@echo "|   C_SRC ='$(C_SRC)'"
+	@echo "|   CXX_SRC ='$(CXX_SRC)'"
+	@echo "|   OBJ ='$(OBJ)'"
+	@echo "|   LIB_DIRFLAGS ='$(LIB_DIRFLAGS)'"
+	@echo "|   INC_FLAGS ='$(INC_FLAGS)'"
+	@echo "|   LIB_FLAGS ='$(LIB_FLAGS)'"
+	@echo "|   DL_PATH ='$(DL_PATH)'"
+	@echo "|"    
+	@echo "|   GCC ='$(GCC)'"
+	@echo "|   GXX ='$(GXX)'"
+	@echo "|   AR ='$(AR)'"
+	@echo "|   CPP ='$(CPP)'"
+	@echo "|   RANLIB ='$(RANLIB)'"
+	@echo "|   MAKEDEPEND ='$(MAKEDEPEND)'"
+	@echo "|   STRIP ='$(STRIP)'"
+	@echo "|"    
+	@echo "====================================================================================================="
+	@echo ""
+
+
+#============================================================================== 
+# include the make depends deps
+ifdef OBJ
+-include $(OBJ:.o=.d)
+endif

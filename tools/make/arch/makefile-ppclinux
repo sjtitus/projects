@@ -1,0 +1,24 @@
+#==============================================================================
+# 
+# Echo360    echo_makefile-Linux-ppc
+# 
+# Architecture-specific makefile for Appliance 
+#
+#==============================================================================
+
+ifeq ($(CROSS_COMPILE),)
+	# use default location..
+	CROSS_COMPILE := powerpc-linux-uclibc-
+endif
+
+CPU_ARCH := ppc
+
+# include & override base linux configuration as necessary..
+include $(ECHO_MAKE_ARCH_ROOT)/echo_makefile-x86linux
+
+CFLAGS+=-D__inline=__inline__ -D__LINUX__ -D__APPLIANCE__
+CXXFLAGS+=-D__inline=__inline__ -D__LINUX__ -D__APPLIANCE__
+LDFLAGS+=-static -ldl
+LIBS := gcc_eh pthread $(LIBS)
+
+STRIP=$(CROSS_COMPILE)strip --remove-section=.comment --remove-section=.note

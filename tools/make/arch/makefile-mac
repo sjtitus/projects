@@ -1,0 +1,68 @@
+#==============================================================================
+# 
+# Echo360    echo_makefile-Darwin
+# 
+# Architecture-specific makefile for Mac OS X 
+#
+#==============================================================================
+
+#ifnef CROSS_COMPILE
+CROSS_COMPILE := 
+#endif
+
+# arch-specific suffixes 
+SUFFIX_SHLIB 	= dylib
+PREFIX_LIB 		= lib
+SUFFIX_LIB 		= a
+
+# build utilities 
+GCC 		= $(CROSS_COMPILE)gcc
+GXX 		= $(CROSS_COMPILE)g++
+AR  		= $(CROSS_COMPILE)ar
+CPP 		= $(CROSS_COMPILE)cpp
+MAKEDEPEND 	= $(GCC) -MM
+RANLIB		= $(CROSS_COMPILE)ranlib
+
+# OS utilities 
+SHELL 		:= /bin/bash
+RM    		:= /bin/rm -f
+DELTREE 	:= /bin/rm -rf
+SED   		:= $(shell which sed) 
+EGREP		:= $(shell which egrep) 
+CPU_ARCH	:= $(shell uname -p)
+STRIP       := echo
+
+
+# Compiler FLAGS 
+#CFLAGS 		:= -DMAC -D_REENTRANT -arch ppc -arch i386 -arch x86_64
+#CXXFLAGS 	:= -DMAC -D_REENTRANT -arch ppc -arch i386 -arch x86_64
+ARCH_FLAGS	:= -arch i386 -m32 -isysroot /Developer/SDKs/MacOSX-Echo-10.5.sdk -mmacosx-version-min=10.5.4
+CFLAGS 		+= -DMAC -D_REENTRANT $(ARCH_FLAGS) -Wno-non-virtual-dtor
+CXXFLAGS 	+= -DMAC -D_REENTRANT $(ARCH_FLAGS) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -Wno-non-virtual-dtor
+WARN	    := -Wall -Werror
+PICFLAGS	:=
+# LDFLAGS are used when linking to create an exe 
+LDFLAGS		:= -bind_at_load -ldl $(ARCH_FLAGS)
+ifeq ($(PROJECT_TYPE),shlib)
+  PICFLAGS := -fPIC
+  # SH_LDFLAGS are used when linking to create a shared lib
+  SH_LDFLAGS  += -dynamiclib $(ARCH_FLAGS)
+endif
+
+
+ifeq ($(BUILD_TYPE),debug)
+  CFLAGS 	+= -DDEBUG -g3 -O0
+  CXXFLAGS 	+= -DDEBUG -g3 -O0
+endif
+
+ifeq ($(BUILD_TYPE),release)
+  CFLAGS 	+= -DNDEBUG -O2
+  CXXFLAGS 	+= -DNDEBUG -O2
+endif
+
+# System-specific dirs
+SYS_LIB_DIRS := 
+
+
+
+

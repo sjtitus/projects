@@ -1,0 +1,108 @@
+
+<html lang="en">
+    <head>
+        <p> This is the head </p>
+        <title>Scratch Page</title>
+        <meta charset="utf-8">
+    </head>
+    
+    <body>
+        <div id="display_error">
+        error div
+        </div>
+
+        <p> Hi Steve, This is My Web Page </p>
+    
+        <form name="myform" id="myform" action="/api/createPlayer">
+         <span>
+            <input id="username" name="username" type="text"/>
+            <input id="button_start" type="submit" value="Start Game"/>
+         </span>
+        </form> 
+    
+        <script src="assets/js/jquery-3.1.1.js"></script>
+        <script src="assets/js/Keyboard.js"></script>
+        <script src="assets/js/SocketController.js"></script>
+        <script>
+            /*
+            function handler(dir)
+            {
+                socketController.Send("echo", dir);
+            }
+            keyboard = new Keyboard(handler);
+            keyboard.Bind();
+            */
+        </script>
+
+
+
+        <script>
+
+            $(document).ready(function(){
+                console.log("doc ready");
+
+                var ajaxError;
+
+                $.ajaxSetup({
+                    type: 'POST',
+                    timeout: 3000,
+                    /*
+                    error: function(xhr) 
+                    {
+                        console.log("global error handler invoked");
+                        $('#display_error')
+                        .html('Error: ' + xhr.status + ' ' + xhr.statusText +"e: "+ajaxError);
+                    }
+                    */
+                });
+                
+                $("#myform").submit(
+                    function(e)
+                    {
+                        var formData = $("#myform").serializeArray();
+                        var URL = $("#myform").attr("action");
+                        console.log("Doing Ajax form post to "+URL);
+                        $.post(URL,
+                            formData,
+                            function(data, textStatus, jqXHR)
+                            {
+                                console.log("reply status:" + textStatus); 
+                                console.log("reply data:" + JSON.stringify(data)); 
+                            }).fail(function(jqXHR, textStatus, errorThrown) 
+                            {
+                                 
+                                console.log("post error:" + errorThrown); 
+                                console.log("jqXHR:" + JSON.stringify(jqXHR)); 
+                                $('#display_error')
+                                .html('Error: post to URL='+URL+' failed'); 
+                            });
+                        e.preventDefault();
+                    }
+                );
+
+
+                /*
+                $("#sendbutton").on('click',
+                    function()
+                    {
+                        socketController.Send("command", "startgame"); 
+                    }
+                );
+                socketController = new SocketController("ws://testlocal.kuttlefish.com");
+                console.log("connecting");
+                socketController.Connect();
+                console.log("adding event listener" + socketController.socket);
+                socketController.socket.addEventListener('message',
+                    function(msg)
+                    {
+                        console.log("received message: "+msg.data);
+                    }
+                ); 
+                */
+            });
+
+        </script>
+    </body>
+</html>
+
+

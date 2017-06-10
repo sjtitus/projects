@@ -1,0 +1,261 @@
+#___________________________________________________________
+# Master makefile for C/C++ projects  
+
+#___________________________________________________________
+# location of master and makefile and arch-specific 
+# makefile dir 'make_arch'
+ifndef MAKE_ROOT
+  $(error makefile must set variable MAKE_ROOT to dir where echo master makefile resides) 
+endif
+
+#___________________________________________________________
+# set the dir where arch-specific makefiles reside 
+MAKE_ARCH_ROOT := $(MAKE_ROOT)/arch
+
+#___________________________________________________________
+# Project and build types 
+BUILD_TYPES := debug release
+
+#___________________________________________________________
+# host we're building on 
+HOST := $(shell hostname)
+
+#___________________________________________________________
+# Supported architectures: each will have an arch-specific
+# makefile in the arch area 
+SUPPORTED_PLATFORMS := $(shell ls $(MAKE_ARCH_ROOT)/makefile-* | sed s:.*makefile-::)
+
+#___________________________________________________________
+# project name
+ifndef PROJECT_NAME
+  $(error makefile must set variable PROJECT_NAME to the name of the project being built) 
+endif
+
+#___________________________________________________________
+# Platforms for which the project may be built.
+ifndef PROJECT_PLATFORMS
+PROJECT_PLATFORMS := $(SUPPORTED_PLATFORMS) 
+endif
+
+#___________________________________________________________
+# the project directory = pwd 
+PROJECT_DIR  := $(CURDIR)
+
+#___________________________________________________________
+# project type: must be one of PROJECT_TYPES 
+PROJECT_TYPES := lib exe shlib
+ifndef PROJECT_TYPE
+  $(error makefile must set variable PROJECT_TYPE to be one of [$(PROJECT_TYPES)])
+else
+  ifneq (exe,$(PROJECT_TYPE))
+  ifneq (lib,$(PROJECT_TYPE))
+  ifneq (shlib,$(PROJECT_TYPE))
+    $(error Unsupported project type '$(PROJECT_TYPE)', must be one of [$(PROJECT_TYPES)])
+  endif
+  endif
+  endif
+endif
+
+#___________________________________________________________
+# build type: must be one of BUILD_TYPES 
+ifndef BUILD_TYPE
+  BUILD_TYPE := debug
+else
+  ifeq (,$(findstring $(BUILD_TYPE),$(BUILD_TYPES)))
+    $(error unsupported build type $(BUILD_TYPE), must be one of [$(BUILD_TYPES)])
+  endif
+endif
+
+#___________________________________________________________
+# source files 
+ifndef SRC_FILES
+  $(error makefile must set variable SRC_FILES to the list of source files being built) 
+endif
+
+#___________________________________________________________
+# include dirs 
+ifndef INC_DIRS 
+  $(error makefile must set variable INC_DIRS to the list of include dirs being used) 
+endif
+
+#___________________________________________________________
+# output 
+ifndef OUTPUT 
+  $(error makefile must set variable OUTPUT to base name of the lib/exe/shlib output for the project) 
+endif
+
+#___________________________________________________________
+# detect platform architecture automatically if it 
+# hasn't been provided
+ifndef ARCH
+  $(error must define ARCH (explictly, or by including makefile $(MAKE_ROOT)/makefile-archdetect)
+endif
+
+#___________________________________________________________
+# bail out if the architecture is not supported
+# note: supported architectures are those that have a
+# makefile 'makefile-<arch>' in the arch-specific 
+# makefile directory.
+TMP := $(shell ls $(MAKE_ARCH_ROOT)/makefile-$(ARCH) 2> /dev/null)
+ifeq ($(TMP),)
+   $(warning unrecognized ARCH '$(ARCH)' : must be one of: $(SUPPORTED_PLATFORMS)) 
+endif
+
+#___________________________________________________________
+# include architecture-specific makefile
+# defines build utils, os utils, compiler flags, etc. 
+# depends on BUILD_TYPE
+CFLAGS += -D__$(ARCH)__
+CXXFLAGS += -D__$(ARCH)__
+-include $(MAKE_ARCH_ROOT)/makefile-$(ARCH)
+
+
+#___________________________________________________________
+# generate list of object files 
+OBJ := $(SRC_FILES:.cpp=.o)
+OBJ := $(OBJ:.c=.o)
+
+#___________________________________________________________
+# generate a list of make dependency files 
+MDEP := $(OBJ:.o=.d)
+
+#___________________________________________________________
+# generate list of include and lib dir flags 
+INC_FLAGS= $(addprefix -I,$(INC_DIRS))
+LIB_DIRFLAGS= $(addprefix -L,$(LIB_DIRS))
+LIB_FLAGS= $(addprefix -l,$(LIBS))
+
+#______________________________________________________________________________
+# project output dir and file 
+OUTPUT_DIR := $(dir $(OUTPUT))
+OUTPUT_FILE := $(notdir $(OUTPUT))
+ifeq ($(PROJECT_TYPE),exe)
+  OUTPUT_TARGET := $(OUTPUT_DIR)$(OUTPUT_FILE)
+endif 
+ifeq ($(PROJECT_TYPE),lib)
+  OUTPUT_TARGET := $(OUTPUT_DIR)$(PREFIX_LIB)$(OUTPUT_FILE).$(SUFFIX_LIB)
+endif
+ifeq ($(PROJECT_TYPE),shlib)
+  OUTPUT_TARGET := $(OUTPUT_DIR)$(PREFIX_LIB)$(PREFIX_SHLIB)$(OUTPUT_FILE).$(SUFFIX_SHLIB)
+endif
+
+#___________________________________________________________
+# Main target 
+all: msg_start $(OUTPUT_TARGET) msg_done
+
+clean:
+	$(RM) $(OUTPUT_TARGET) $(OBJ) $(MDEP)
+
+#___________________________________________________________
+# Link rule 
+ifeq ($(PROJECT_TYPE),exe)
+$(OUTPUT_TARGET): $(OBJ)
+	@echo "===> build: project '$(PROJECT_NAME)': linking executable" 
+	$(GXX) -o $@ $(WARN) $(OBJ) $(INC_FLAGS) $(LIB_DIRFLAGS) $(LIB_FLAGS) $(LDFLAGS) $(EXPLICIT_LIBS)
+endif
+
+ifeq ($(PROJECT_TYPE),lib)
+$(OUTPUT_TARGET): $(OBJ)
+	@echo "===> echo_build: project '$(PROJECT_NAME)': archiving static library" 
+	-rm -rf $@
+	$(AR) cru $@ $^
+	$(RANLIB) $@
+endif
+
+ifeq ($(PROJECT_TYPE),shlib)
+$(OUTPUT_TARGET): $(OBJ)
+	@echo "===> echo_build: project '$(PROJECT_NAME)': linking shared library"
+	$(GXX) -o $@ $(WARN) $(OBJ) $(INC_FLAGS) $(LIB_DIRFLAGS) $(LIB_FLAGS) $(SH_LDFLAGS) $(EXPLICIT_LIBS)
+endif
+#___________________________________________________________
+# C++ compilation rule 
+%.o : %.cpp %.d 
+	$(GXX) -o $@ -c $(INC_FLAGS) $(WARN) $(PICFLAGS) $(CXXFLAGS) $< 
+
+#___________________________________________________________
+# C compilation rule 
+%.o : %.c %.d 
+	$(GCC) -o $@ -c $(INC_FLAGS) $(WARN) $(PICFLAGS) $(CFLAGS) $< 
+
+#___________________________________________________________
+# C++ make depends rule 
+%.d : %.cpp
+	@ARCH=$(ARCH) $(MAKEDEPEND) $(CXXFLAGS) $(INC_FLAGS) $< -MF $@.$$$$; \
+	$(SED) 's,\(.*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;  \
+	$(RM) $@.$$$$
+
+#___________________________________________________________
+# C make depends rule 
+%.d : %.c
+	@ARCH=$(ARCH) $(MAKEDEPEND) $(CFLAGS) $(INC_FLAGS) $< -MF $@.$$$$; \
+	$(SED) 's,\(.*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;  \
+	$(RM) $@.$$$$
+
+#___________________________________________________________
+# dump make environment info
+.PHONY : info
+info:
+	@echo ""
+	@echo "====================================================================================================="
+	@echo "| Build Environment: project '$(PROJECT_NAME)'"
+	@echo "| -----------------"
+	@echo "|"    
+	@echo "| Project Info"    
+	@echo "| ------------"
+	@echo "|   PROJECT_DIR ='$(PROJECT_DIR)'"
+	@echo "|   PROJECT_TYPE ='$(PROJECT_TYPE)'"
+	@echo "|   PROJECT_PLATFORMS ='$(PROJECT_PLATFORMS)'"
+	@echo "|   BUILD_TYPE ='$(BUILD_TYPE)'"
+	@echo "|   INC_DIRS ='$(INC_DIRS)'"
+	@echo "|   LIB_DIRS ='$(LIB_DIRS)'"
+	@echo "|   SRC_FILES ='$(SRC_FILES)'"
+	@echo "|   OBJ ='$(OBJ)'"
+	@echo "|   MDEP ='$(MDEP)'"
+	@echo "|   CFLAGS ='$(CFLAGS)'"
+	@echo "|   CXXFLAGS ='$(CXXFLAGS)'"
+	@echo "|   INC_FLAGS ='$(INC_FLAGS)'"
+	@echo "|   LIB_FLAGS ='$(LIB_FLAGS)'"
+	@echo "|   LIB_DIRFLAGS ='$(LIB_DIRFLAGS)'"
+	@echo "|   LDFLAGS ='$(LDFLAGS)'"
+	@echo "|   SH_LDFLAGS ='$(SH_LDFLAGS)'"
+	@echo "|   OUTPUT_DIR ='$(OUTPUT_DIR)'"
+	@echo "|   OUTPUT_FILE ='$(OUTPUT_FILE)'"
+	@echo "|   OUTPUT_TARGET ='$(OUTPUT_TARGET)'"
+	@echo "|"    
+	@echo "| Build System"    
+	@echo "| ------------"
+	@echo "|   HOST = '$(HOST)'"
+	@echo "|   ARCH = '$(ARCH)'"
+	@echo "|   OS_ARCH = '$(OS_ARCH)'"
+	@echo "|   OS_TEST = '$(OS_TEST)'"
+	@echo "|   OS_RELEASE = '$(OS_RELEASE)'"
+	@echo "|   OS_TARGET = '$(OS_TARGET)'"
+	@echo "|   CPU_ARCH = '$(CPU_ARCH)'"
+	@echo "|   OS_CONFIG = '$(OS_CONFIG)'"
+	@echo "|   USE_64 = '$(USE_64)'"
+	@echo "|   MAKE_ROOT = '$(MAKE_ROOT)'"
+	@echo "|   SUPPORTED_PLATFORMS = '$(SUPPORTED_PLATFORMS)'"
+	@echo "|"    
+	@echo "| Tools"    
+	@echo "| -----"
+	@echo "|   GCC ='$(GCC)'"
+	@echo "|   GXX ='$(GXX)'"
+	@echo "|   AR ='$(AR)'"
+	@echo "|   CPP ='$(CPP)'"
+	@echo "|   RANLIB ='$(RANLIB)'"
+	@echo "|   MAKEDEPEND ='$(MAKEDEPEND)'"
+	@echo "|   STRIP ='$(STRIP)'"
+	@echo "|"    
+	@echo "====================================================================================================="
+	@echo ""
+
+# User-friendly msgs
+.PHONY : msg_start msg_done 
+msg_start:
+	@echo "===> build: project '$(PROJECT_NAME)': build start ($(PROJECT_TYPE), $(BUILD_TYPE) [pid=$$$$])"
+msg_done:
+	@echo "===> build: project '$(PROJECT_NAME)': build complete: ** SUCCESS **" 
+
+#___________________________________________________________
+# include makedepend generated makefiles 
+-include $(OBJ:.o=.d)

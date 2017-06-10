@@ -1,0 +1,57 @@
+#==============================================================================
+# 
+# Echo360    echo_makefile-ARM
+# 
+# Architecture-specific makefile for Pro Appliance
+#
+#==============================================================================
+
+ifeq ($(CROSS_COMPILE),)
+        # use default location..
+        CROSS_COMPILE := arm-none-linux-gnueabi-
+endif
+
+# arch-specific suffixes 
+SUFFIX_SHLIB            = so
+PREFIX_LIB              = lib
+SUFFIX_LIB              = a
+
+# build utilities 
+GCC             = $(CROSS_COMPILE)gcc
+GXX             = $(CROSS_COMPILE)g++
+AR              = $(CROSS_COMPILE)ar
+CPP             = $(CROSS_COMPILE)cpp
+RANLIB          = $(CROSS_COMPILE)ranlib
+STRIP           = $(CROSS_COMPILE)strip
+MAKEDEPEND      = $(GCC) -DARM -MM
+
+# OS utilities 
+SHELL           := /bin/bash
+RM              := /bin/rm -f
+DELTREE         := /bin/rm -rf
+SED             := /bin/sed
+EGREP           := /bin/egrep
+CPU_ARCH        := 926
+
+# Compiler FLAGS 
+CFLAGS          += -DARM
+CXXFLAGS        += -DARM
+WARN            := -Wall -Werror
+PICFLAGS        :=
+ifeq ($(PROJECT_TYPE),shlib)
+  PICFLAGS := -fPIC
+  SH_LDFLAGS  := -shared
+endif
+
+ifeq ($(BUILD_TYPE),debug)
+  CFLAGS        += -DDEBUG -g
+  CXXFLAGS      += -DDEBUG -g
+endif
+
+ifeq ($(BUILD_TYPE),release)
+  CFLAGS        += -DNDEBUG -O2
+  CXXFLAGS      += -DNDEBUG -O2
+endif
+
+# System-specific dirs
+SYS_LIB_DIRS := 

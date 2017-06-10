@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+	<head>
+		<title>Scratch Page</title>
+		<meta charset="utf-8">
+	</head>
+	
+	<body>
+		<script src="Keyboard.js"></script>
+		<script src="SocketController.js"></script>
+		<script>
+            socketController = new SocketController("ws://testlocal.kuttlefish.com");
+            socketController.Connect();
+            function handler(dir)
+            {
+                socketController.Send(dir);
+            }
+            keyboard = new Keyboard(handler);
+            keyboard.Bind();
+		</script>
+	</body>
+</html>
