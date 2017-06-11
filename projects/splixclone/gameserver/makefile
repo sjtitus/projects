@@ -26,14 +26,16 @@ INC_DIRS = include /usr/local/include
 LIB_DIRS = lib /usr/local/lib
 LIBS = m gtest pthread
 
-SRC_FILES = src/Board.cpp 		\
-			src/Game.cpp 		\
-			src/Array2D.cpp		\
-			src/Player.cpp		\
-			src/UnitTest.cpp
+SRC_FILES = src/log4cxx_test.cpp
+#			src/Board.cpp        \
+#            src/Game.cpp         \
+#            src/Array2D.cpp      \
+#            src/Player.cpp       \
+#            src/UnitTest.cpp
 
-
+    
 #______________________________________________________________________________
 # Include the master makefile
 # Defines targets 'all' and 'clean'
 include $(MAKE_ROOT)/makefile-master
+LDFLAGS += /usr/local/lib/liblog4cxx.a /usr/local/apr/lib/libapr-1.a /usr/local/apr/lib/libaprutil-1.a /usr/lib64/libexpat.a
