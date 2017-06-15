@@ -26,13 +26,13 @@ INC_DIRS = include /usr/local/include
 LIB_DIRS = lib /usr/local/lib
 LIBS = m gtest pthread
 
-SRC_FILES = src/log4cxx_test.cpp
-#			src/Board.cpp        \
-#            src/Game.cpp         \
-#            src/Array2D.cpp      \
-#            src/Player.cpp       \
-#            src/UnitTest.cpp
-
+SRC_FILES = src/Board.cpp        			\
+            src/Game.cpp         			\
+            src/Array2D.cpp      			\
+            src/Player.cpp       			\
+            src/SimpleException.cpp       	\
+            src/UnitTest.cpp
+# src/log4cxx_test.cpp
     
 #______________________________________________________________________________
 # Include the master makefile

@@ -11,6 +11,8 @@
 
 #include <cstdint>
 
+namespace com { namespace dimension3designs {
+
 class Position
 {
     public:
@@ -48,5 +50,7 @@ class Position
         uint32_t _x;
         uint32_t _y;
 };
+
+}}
 
 #endif

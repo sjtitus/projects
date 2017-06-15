@@ -5,8 +5,13 @@
 */
  
 #include "Player.hpp"
+#include "Logging.hpp"
 
 namespace {
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+using namespace com::dimension3designs;
 
 
 // Test fixture for Player class 

@@ -16,6 +16,9 @@
 #include <cstdint>
 #include <memory>
 #include "Array2D.hpp"
+#include "Logging.hpp"
+
+namespace com { namespace dimension3designs {
 
 class Board
 {
@@ -31,10 +34,14 @@ class Board
         uint32_t hlimit() { return _hlimit;             }
         
     private:
-        std::unique_ptr<Array2D<uint8_t>> _pArray;   // board owns the array of blocks 
-        uint32_t _wlimit;
-        uint32_t _hlimit;
+        std::unique_ptr<com::dimension3designs::Array2D<uint8_t>>   _pArray;    // board owns the array of blocks 
+        uint32_t                                                    _wlimit;    // int width limit 
+        uint32_t                                                    _hlimit;    // int height limit
+        static log4cxx::LoggerPtr                                   _logger;    // logging
 
 };
+
+}
+}
 
 #endif

@@ -5,4 +5,8 @@
 */
 
 #include "Array2D.hpp" 
+#include "Logging.hpp"
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
 

@@ -12,13 +12,14 @@
 #include "Position.hpp"
 #include "Board.hpp"
 
+namespace com { namespace dimension3designs {
 
 class Player
 {
     public:
 
         // Constructors
-        Player(const std::string &name, Board * const pBoard);
+        Player(const std::string &name, com::dimension3designs::Board * const pBoard);
 
         // Accessors
         
@@ -39,14 +40,16 @@ class Player
         void MoveRight(uint32_t step); 
 
     private:
-        std::string             _name;              // player name
-        std::string             _id;                // unique player id
-        Position                _Position;          // player position on the board
-        Board *                 _pBoard;            // the game board (owned by the game) 
+        std::string                                     _name;              // player name
+        std::string                                     _id;                // unique player id
+        com::dimension3designs::Position                _Position;          // player position on the board
+        com::dimension3designs::Board *                 _pBoard;            // the game board (owned by the game) 
 
         // helper functions
-        std::string             _GenerateId();     // generate unique player id 
+        std::string                                     _GenerateId();     // generate unique player id 
 };
+
+}}
 
 #endif
 

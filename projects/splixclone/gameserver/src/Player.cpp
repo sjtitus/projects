@@ -8,6 +8,13 @@
 #include <boost/assert.hpp>
 #include <chrono>
 #include <iostream>
+#include "Logging.hpp"
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+using namespace com::dimension3designs;
+
+namespace com { namespace dimension3designs {
             
 // Constructor 
 Player::Player(const std::string &name, Board * const pBoard)
@@ -53,4 +60,6 @@ void Player::MoveRight(uint32_t step)
     if (_Position.x() > _pBoard->wlimit())
         _Position.set_x(_pBoard->wlimit());
 }
+
+}}
 

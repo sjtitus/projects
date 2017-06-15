@@ -12,6 +12,8 @@
 #include <cstring>
 #include <boost/assert.hpp>
 
+namespace com { namespace dimension3designs {
+
 template< typename T >
 class Array2D
 {
@@ -50,5 +52,8 @@ class Array2D
         T** _ary;
 
 };
+
+}}
+
 
 #endif

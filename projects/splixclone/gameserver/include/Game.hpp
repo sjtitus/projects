@@ -16,6 +16,8 @@
 #include "Board.hpp"
 #include "Player.hpp"
 
+namespace com { namespace dimension3designs {
+
 class Game
 {
     public:
@@ -24,7 +26,7 @@ class Game
         Game(uint32_t board_width, uint32_t board_height);
 
         // Accessors
-        Board* GetBoard() { return _pBoard.get(); }
+        com::dimension3designs::Board* GetBoard() { return _pBoard.get(); }
 
         // Player Management
         std::string                 AddPlayer(const std::string &name);
@@ -32,8 +34,11 @@ class Game
         void                        RemovePlayer(const std::string &id);  
 
     private:
-        std::unique_ptr<Board> _pBoard;                             // game owns the game board
-        std::unordered_map<std::string, Player> _PlayerHash;        // hash of players 
+        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // game owns the game board
+        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _PlayerHash;    // hash of players 
+        static log4cxx::LoggerPtr                                                           _logger;        // logging
 };
+
+}}
 
 #endif

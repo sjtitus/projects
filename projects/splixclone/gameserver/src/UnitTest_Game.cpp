@@ -5,8 +5,13 @@
 */
  
 #include "Game.hpp"
+#include "Logging.hpp"
 
 namespace {
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+using namespace com::dimension3designs;
 
 
 // Test fixture for Game class 
@@ -28,6 +33,11 @@ TEST_F(GameTest, InitialState) {
     Board *b = g.GetBoard(); 
     EXPECT_EQ(1000,b->width());
     EXPECT_EQ(5000,b->height());
+}
+
+TEST_F(GameTest, AddPlayer) {
+    Game g(1000,5000);
+    g.AddPlayer("stitus"); 
 }
 
 
