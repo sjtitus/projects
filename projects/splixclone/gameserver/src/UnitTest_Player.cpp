@@ -6,6 +6,7 @@
  
 #include "Player.hpp"
 #include "Logging.hpp"
+#include <vector>
 
 namespace {
 
@@ -34,6 +35,12 @@ class PlayerTest : public ::testing::Test {
 
 //_____________________________________________________________________________
 // Initial State: all 0 
+TEST_F(PlayerTest, Container) {
+    Player p("stitus",b);
+    std::vector<Player> playerVector;
+    playerVector.push_back(std::move(p));
+}
+
 TEST_F(PlayerTest, InitialState) {
     Player p("stitus",b);
     TMSG("Player init position\n");

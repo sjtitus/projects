@@ -34,7 +34,7 @@ class Game
         void                        RemovePlayer(const std::string &id);  
 
     private:
-        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // game owns the game board
+        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // game owns the board
         std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _PlayerHash;    // hash of players 
         static log4cxx::LoggerPtr                                                           _logger;        // logging
 };

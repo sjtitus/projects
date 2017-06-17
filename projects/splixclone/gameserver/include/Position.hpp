@@ -49,6 +49,14 @@ class Position
     private:
         uint32_t _x;
         uint32_t _y;
+    
+    // Move semantics only
+    private:
+        Position(const Position&); 
+        Position& operator=(const Position&);
+    public:
+        Position(Position&& x) = default;   
+        Position& operator=(Position&& a) = default;
 };
 
 }}

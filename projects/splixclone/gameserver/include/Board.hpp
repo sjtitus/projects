@@ -38,6 +38,14 @@ class Board
         uint32_t                                                    _wlimit;    // int width limit 
         uint32_t                                                    _hlimit;    // int height limit
         static log4cxx::LoggerPtr                                   _logger;    // logging
+    
+    // Move semantics only
+    private:
+        Board(const Board&); 
+        Board& operator=(const Board&);
+    public:
+        Board(Board&& x) = default;   
+        Board& operator=(Board&& a) = default;
 
 };
 

@@ -50,6 +50,14 @@ class Array2D
         size_t _height;
         size_t _width;
         T** _ary;
+    
+    // Move semantics only
+    private:
+        Array2D(const Array2D&); 
+        Array2D& operator=(const Array2D&);
+    public:
+        Array2D(Array2D&& x) = default;   
+        Array2D& operator=(Array2D&& a) = default;
 
 };
 

@@ -6,7 +6,7 @@
 //#include <string>
 //#include <cstdio>
 
-#define RAISE_EXCEPTION(msg) (throw SimpleException(msg,__FILE__,__FUNCTION__,__LINE__))
+#define RAISE_EXCEPTION(msg) (throw SimpleException((msg),__FILE__,__FUNCTION__,__LINE__))
 
 class SimpleException
 {
@@ -15,7 +15,6 @@ class SimpleException
     // Constructor
     SimpleException(const std::string &msg, const char *file, const char *function, int line);
 
-   
     // Accessors 
     int             line()      const   { return _line;     }
     const char*     file()      const   { return _file;     }

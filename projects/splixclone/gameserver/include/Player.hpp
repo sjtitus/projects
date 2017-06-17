@@ -47,6 +47,15 @@ class Player
 
         // helper functions
         std::string                                     _GenerateId();     // generate unique player id 
+
+
+    // Move semantics only
+    private:
+        Player(const Player&); 
+        Player& operator=(const Player&);
+    public:
+        Player(Player&& x) = default;   
+        Player& operator=(Player&& a) = default;
 };
 
 }}
