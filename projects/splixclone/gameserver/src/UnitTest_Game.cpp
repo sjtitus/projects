@@ -35,10 +35,37 @@ TEST_F(GameTest, InitialState) {
     EXPECT_EQ(5000,b->height());
 }
 
+
 TEST_F(GameTest, AddPlayer) {
     Game g(1000,5000);
-    g.AddPlayer("stitus"); 
+    auto id = g.AddPlayer("stitus"); 
+    EXPECT_EQ(1,g.NumPlayers());
+    std::vector<std::string> pList = g.FindPlayers("stitus");
+    EXPECT_EQ(1,pList.size());
+    EXPECT_EQ(id,pList[0]);
 }
+
+TEST_F(GameTest, RemovePlayer) {
+    Game g(1000,5000);
+    auto a = g.AddPlayer("abby"); 
+    auto b = g.AddPlayer("bernie"); 
+    auto c = g.AddPlayer("carl"); 
+    auto a2 = g.AddPlayer("abby"); 
+    EXPECT_EQ(4,g.NumPlayers());
+    std::vector<std::string> pList = g.FindPlayers("abby");
+    EXPECT_EQ(2,pList.size());
+    EXPECT_EQ(true,pList[0]==a || pList[1]==a);
+    EXPECT_EQ(true,pList[0]==a2 || pList[1]==a2);
+    g.RemovePlayer(c);
+    EXPECT_EQ(3,g.NumPlayers());
+    pList = g.FindPlayers("carl");
+    EXPECT_EQ(0,pList.size());
+    g.RemovePlayer(a);
+    g.RemovePlayer(b);
+    g.RemovePlayer(a2);
+    EXPECT_EQ(0,g.NumPlayers());
+}
+
 
 
 }  // namespace

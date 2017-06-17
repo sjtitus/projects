@@ -71,11 +71,35 @@ void Game::RemovePlayer(const std::string &id)
 
 
 
-// Find players with specified name
-// Returns list of all matching players, or all players if name is not provided
+//______________________________________________________________________________
+// FindPlayers
+// Find players with specified name.
+// Returns list of all player IDs for players with the specified name, 
+// or all players if name is not provided.
+//______________________________________________________________________________
 std::vector<std::string> Game::FindPlayers(const std::string &name)
 {
+    LOG4CXX_TRACE(_logger,"Game::FindPlayers: name="<<name);
     std::vector<std::string> playerList;
+    if (name.size()==0)
+    {
+        // return all the players
+        playerList.reserve(_PlayerHash.size());
+        for(auto &kv : _PlayerHash) {
+            playerList.push_back(kv.first);  
+        }
+    }
+    else
+    {
+        // return all matching players
+        for(auto &kv : _PlayerHash) {
+            if (kv.second->Name() == name)
+            {
+                playerList.push_back(kv.first);
+            }  
+        }
+    }
+    LOG4CXX_TRACE(_logger,"Game::FindPlayers: returning "<<playerList.size()<<" id(s)");
     return playerList; 
 }
 
