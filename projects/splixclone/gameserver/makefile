@@ -24,13 +24,15 @@ OUTPUT = bin/$(PROJECT_NAME)
 CXXFLAGS = -std=c++11
 INC_DIRS = include /usr/local/include
 LIB_DIRS = lib /usr/local/lib
-LIBS = m gtest pthread
+LIBS = m gtest pthread boost_system boost_thread rt
 
 SRC_FILES = src/Board.cpp        			\
             src/Game.cpp         			\
             src/Array2D.cpp      			\
             src/Player.cpp       			\
             src/SimpleException.cpp       	\
+			src/CommandMessageHandler.cpp	\
+			src/LocalSocketSession.cpp		\
             src/UnitTest.cpp
 # src/log4cxx_test.cpp
     

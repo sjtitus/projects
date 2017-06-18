@@ -99,12 +99,9 @@ std::vector<std::string> Game::FindPlayers(const std::string &name)
             }  
         }
     }
+    
     LOG4CXX_TRACE(_logger,"Game::FindPlayers: returning "<<playerList.size()<<" id(s)");
     return playerList; 
 }
 
 }}
-
-
-
-
