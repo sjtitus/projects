@@ -15,6 +15,8 @@
  *_____________________________________________________________________________
  */ 
 
+namespace com { namespace dimension3designs {
+
 class MessageHandler
 {
     public:
@@ -25,6 +27,8 @@ class MessageHandler
         virtual void HandleWriteError( const boost::system::error_code& error ) = 0;
         virtual void Start()=0;
 };
+
+}}
 
 
 

@@ -5,6 +5,7 @@
 
 #include "UnitTest.hpp"
 
+#include "UnitTest_LocalSocketSession.cpp"
 #include "UnitTest_Position.cpp"
 #include "UnitTest_Board.cpp"
 #include "UnitTest_Game.cpp"

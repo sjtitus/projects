@@ -1,28 +1,27 @@
 
-#include "MessageHandler.hpp"
+#include "CommandMessageHandler.hpp"
 
-class CommandMessageHandler: public MessageHandler
+namespace com { namespace dimension3designs {
+
+
+void CommandMessageHandler::HandleRead( std::unique_ptr<std::string> pMessage )
 {
-    public:
-        typedef boost::shared_ptr<CommandMessageHandler> Ptr;
+}
 
-        virtual void HandleRead( std::unique_ptr<std::string> pMessage )
-        {
-        }
-        
-        virtual void HandleWrite( size_t bytesWritten )
-        {
-        }
-        
-        virtual void HandleReadError( const boost::system::error_code& error )
-        {
-        }
-        
-        virtual void HandleWriteError( const boost::system::error_code& error )
-        {
-        }
-        
-        virtual void Start()
-        {
-        }
-};
+void CommandMessageHandler::HandleWrite( size_t bytesWritten )
+{
+}
+
+void CommandMessageHandler::HandleReadError( const boost::system::error_code& error )
+{
+}
+
+void CommandMessageHandler::HandleWriteError( const boost::system::error_code& error )
+{
+}
+
+void CommandMessageHandler::Start()
+{
+}
+
+}}

@@ -54,10 +54,17 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     // Constructors / Destructor
     // template<class a_type> void a_class<a_type>::a_function(){...}
     LocalSocketSession( boost::asio::io_service& io_service )
+    :socket_(io_service)
     {
         // make sure that class T is a subclass of MessageHandler
         BOOST_STATIC_ASSERT((std::is_base_of<MessageHandler, T>::value));
         LOG4CXX_TRACE(logger_,"LocalSocketSession: construct");
+       
+        // Create a new MessageHandler to use for message traffic 
+        LOG4CXX_DEBUG(logger_,"LocalSocketSession: creating message handler");
+        pMessageHandler_ = std::unique_ptr<MessageHandler>(new T());
+        LOG4CXX_TRACE(logger_,"LocalSocketSession: construct ok");
+        
     } 
     
     ~LocalSocketSession()
@@ -85,6 +92,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
         } 
         catch(std::exception &e) 
         {
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::Connect: exception: " << e);
         }
     }
 
@@ -110,6 +118,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
         }
         catch(std::exception &e) 
         {
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadMessage: exception: " << e);
         }
     }
 
@@ -255,7 +264,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     boost::asio::streambuf response_;
  
     // Message handler providing application-level callbacks
-    MessageHandler::Ptr pMessageHandler_; 
+    std::unique_ptr<MessageHandler>  pMessageHandler_; 
     
     // logging
     static log4cxx::LoggerPtr  logger_;
