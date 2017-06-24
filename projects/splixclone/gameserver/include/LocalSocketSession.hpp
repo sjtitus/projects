@@ -2,14 +2,14 @@
  *
  *  LocalSocketSession
  *  Session for asynchronous send/receive of string messages over a Unix  
- *  domain (local) socket. Invokes a LocalSocketSessionHandler (see below)
- *  for application-specific message handling.
+ *  domain (local) socket. Invokes a MessageHandler for application-specific 
+ *  message handling.
+ *  
+ *  Uses boost::asio for asynch network handling.  
  *
  *  LocalSocketSessionHandler
  *  Abstract class used for application specific handling of 
  *  LocalSocketSession messages.
- *
- *  Uses boost::asio for asynch network handling.  
  * ____________________________________________________________________________
 */
 
@@ -41,8 +41,7 @@ namespace com { namespace dimension3designs {
 // strings over a local (Unix domain) socket.
 // End-of-message delimiter is "\n"
 
-template<typename T>  
-class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSession<T>>
+class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSession>
 {
   public:
     
@@ -52,30 +51,16 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
 
     //__________________________________________________________________________
     // Constructors / Destructor
-    // template<class a_type> void a_class<a_type>::a_function(){...}
-    LocalSocketSession( boost::asio::io_service& io_service )
-    :socket_(io_service)
-    {
-        // make sure that class T is a subclass of MessageHandler
-        BOOST_STATIC_ASSERT((std::is_base_of<MessageHandler, T>::value));
-        LOG4CXX_TRACE(logger_,"LocalSocketSession: construct");
-       
-        // Create a new MessageHandler to use for message traffic 
-        LOG4CXX_DEBUG(logger_,"LocalSocketSession: creating message handler");
-        pMessageHandler_ = std::unique_ptr<MessageHandler>(new T());
-        LOG4CXX_TRACE(logger_,"LocalSocketSession: construct ok");
-        
-    } 
-    
-    ~LocalSocketSession()
-    {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession: destruct");
-    }
+    LocalSocketSession( boost::asio::io_service& io_service );
+    ~LocalSocketSession();
     
     //__________________________________________________________________________
     // SetMessageHandler: Set the handler that provides async read/write
     // callbacks. 
-    //void SetMessageHandler( LocalSocketSession::MessageHandler::Ptr &pMessageHandler );
+    void SetMessageHandler( MessageHandler::Ptr &pMessageHandler )
+    {
+        pMessageHandler_ = pMessageHandler;
+    }
 
     //__________________________________________________________________________
     // Socket: access to the underlying socket
@@ -83,178 +68,30 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
    
     //__________________________________________________________________________
     // Connect: Synchronous client connect to the socket file 
-    void Connect( const std::string &localFile )
-    {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession:sync connect to " << localFile);
-        try 
-        {
-            socket_.connect(stream_protocol::endpoint(localFile));
-        } 
-        catch(std::exception &e) 
-        {
-            LOG4CXX_ERROR(logger_,"LocalSocketSession::Connect: exception: " << e);
-        }
-    }
+    void Connect( const std::string &localFile );
 
     //__________________________________________________________________________
     // ReadMesssage: Async message read 
-    void ReadMessage()
-    {
-        BOOST_ASSERT_MSG(pMessageHandler_,"LocalSocketSession::ReadMessage: MessageHandler must be defined");
-        LOG4CXX_TRACE(logger_,"LocalSocketSession:asynch read message");
-        try
-        {
-            boost::asio::async_read_until(
-                socket_, 
-                response_, 
-                LocalSocketSession::DELIMITER,
-                boost::bind(
-                    &LocalSocketSession::ReadCallback, 
-                    this->shared_from_this(),
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred
-                )
-            );
-        }
-        catch(std::exception &e) 
-        {
-            LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadMessage: exception: " << e);
-        }
-    }
-
+    void ReadMessage();
  
     //__________________________________________________________________________
     // WriteMesssage: Async message write 
-    void WriteMessage( const std::string &message )
-    {
-        BOOST_ASSERT_MSG(pMessageHandler_,"*** MessageHandler must be defined ***");
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteMessage:: asynch write message, message='" << message << "'");
-        try
-        {
-            // TODO: make sure message does not contain delimeter
-            std::ostream request_stream(&request_);
-            request_stream << message << LocalSocketSession::DELIMITER; 
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteMessage: queued message size: " << request_.size()); 
-
-            boost::asio::async_write(
-                socket_, 
-                request_,
-                boost::bind(
-                    &LocalSocketSession::WriteCallback,
-                    this->shared_from_this(),
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred
-                )
-            );
-        }
-        catch(std::exception &e) 
-        {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteMessage: caught exception: " << e);
-        }
-    }
+    void WriteMessage( const std::string &message );
     
     //__________________________________________________________________________
     // Close: Close the session 
-    void Close()
-    {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::Close: shutting down and closing socket");
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-        socket_.close(); 
-    }
+    void Close();
 
   private:
 
     // message delimiter
     static constexpr const char *DELIMITER = "\n";
 
-
-
-
     // ReadCallback: internal async read callback 
-    void ReadCallback( const boost::system::error_code& error, 
-            size_t bytes_transferred )
-    {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::ReadCallback: receiving message");
-        if (error)
-        {
-            LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadCallback: error reading messaage: " << error.message());
-            if (pMessageHandler_)
-            { 
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: invoking error handler");
-                pMessageHandler_->HandleReadError(error);
-            }
-        }
-        else if (bytes_transferred > 0) 
-        {
-            LOG4CXX_TRACE(logger_,"LocalSocketSession::ReadCallback: " << bytes_transferred << " bytes");
-            try 
-            { 
-                // read entire socket stream into a new message (string) 
-                std::istream response_stream(&response_);
-                std::unique_ptr<std::string> pMessage = std::unique_ptr<std::string>(
-                    new std::string(std::istreambuf_iterator<char>(response_stream), {})
-                );
-                if (response_stream.fail())
-                {
-                    LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadCallback: getline stream fail");
-                } 
-                if (response_stream.eof())
-                {
-                    LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadCallback: getline stream eof");
-                } 
-            
-                // invoke the message handler, passing message ownership
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: incoming message: '" <<  *pMessage << "'");
-                if (pMessageHandler_)
-                { 
-                    LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: invoking incoming message handler");
-                    pMessageHandler_->HandleRead(std::move(pMessage));
-                }
-            }
-            catch(std::exception &e) 
-            {
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: caught exception: " << e);
-            }
-        }
-        else
-        {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: 0 bytes transferred (socket closed?)");
-        }
-    }
-
-
+    void ReadCallback( const boost::system::error_code& error, size_t bytes_transferred );
 
     // WriteCallback: internal async write callback 
-    void WriteCallback( const boost::system::error_code& error, 
-            size_t bytes_transferred )
-    {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteCallback");
-        if (error)
-        {
-            LOG4CXX_ERROR(logger_,"LocalSocketSession::WriteCallback: error during write: " << error.message());
-            if (pMessageHandler_)
-            {
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: handling error");
-                pMessageHandler_->HandleWriteError(error);
-            }
-            //THROW_SYSTEM_EXCEPTION("ERROR writing message: " + error.message());
-        }
-        else if (bytes_transferred > 0)
-        { 
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: written message size: " << bytes_transferred);
-            // empty the write buffer? Seems like it's not needed..? 
-            // request_.consume(request_.size()); 
-            if (pMessageHandler_)
-            { 
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: invoking write callback");
-                pMessageHandler_->HandleWrite(bytes_transferred);
-            }
-        }
-        else
-        {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: 0 bytes transferred (socket closed?)");
-        }
-    }
+    void WriteCallback( const boost::system::error_code& error, size_t bytes_transferred );
     
     // Local unix-domain socket
     stream_protocol::socket socket_;
@@ -264,30 +101,50 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     boost::asio::streambuf response_;
  
     // Message handler providing application-level callbacks
-    std::unique_ptr<MessageHandler>  pMessageHandler_; 
-    
-    // logging
-    static log4cxx::LoggerPtr  logger_;
+    MessageHandler::Ptr pMessageHandler_; 
+
+    public:    
+        // logging
+        static log4cxx::LoggerPtr  logger_;
 };
 
-template<typename T>
-log4cxx::LoggerPtr LocalSocketSession<T>::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
 
 
-
-
-/*
- * Maybe we don't need this?
- *
 //__________________________________________________________________________
-// LocalSocketSessionHandler: abstract class for application-specific
-// session handling.
+// LocalSocketSessionHandler: socket session handling.
+// Wires up the session to an application-specific MessageHandler via
+// templating.
+// 
+template<typename T>
 class LocalSocketSessionHandler
 {
     public:
-        virtual void HandleSession( LocalSocketSession::Ptr &pSession ) = 0;
+        LocalSocketSessionHandler()
+        {
+            BOOST_STATIC_ASSERT((std::is_base_of<MessageHandler, T>::value));
+            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler: construct");
+        }
+
+        void HandleSession( LocalSocketSession::Ptr &pSession )
+        {
+            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler: handle session " << pSession.get())
+            // Create shared_ptr codependency: MessageHandler holds Session and
+            // Session holds MessaageHandler. The way the duo is released from mem
+            // is when a MessageHandler does a session pointer reset, which triggers session
+            // deletion, and subsequent MessageHandler deletion.
+            MessageHandler::Ptr pHandler(new T(pSession));
+            pSession->SetMessageHandler(pHandler);
+            pHandler->Start();
+        }
+
+       
+    public: 
+        // logging
+        static log4cxx::LoggerPtr  logger_;
 };
-*/
+
+template<typename T>
+log4cxx::LoggerPtr LocalSocketSessionHandler<T>::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
 
 
 #else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)

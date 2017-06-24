@@ -32,7 +32,7 @@ class LocalSocketSessionTest : public ::testing::Test {
 //_____________________________________________________________________________
 // Initial State: all 0 
 TEST_F(LocalSocketSessionTest, InitialState) {
-    LocalSocketSession<CommandMessageHandler> lss(io_service); 
+    LocalSocketSession lss(io_service); 
     TMSG("LocalSocketSession Initial State\n");
 }
 
