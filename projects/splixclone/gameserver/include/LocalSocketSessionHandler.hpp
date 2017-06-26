@@ -24,31 +24,43 @@ using boost::asio::local::stream_protocol;
 
 namespace com { namespace dimension3designs {
 
+//__________________________________________________________________________
+// LocalSocketSessionHandler: socket session handling.
+// Wires up the session to an application-specific MessageHandler via
+// templating.
+// 
 template<typename T>
 class LocalSocketSessionHandler
 {
     public:
-        LocalSocketSessionHandler(LocalSocketSession::Ptr &pSession)
-            :pSession_(pSession)
+        LocalSocketSessionHandler()
         {
             BOOST_STATIC_ASSERT((std::is_base_of<MessageHandler, T>::value));
-            L_INFO << "LocalSocketSessionHandler: construct with session " << pSession_.get();
+            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler: Construct");
         }
 
         void HandleSession( LocalSocketSession::Ptr &pSession )
         {
+            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler::HandleSession session " << pSession.get());
+            // ________________________________________________________________________________________
+            // IMPORTANT
             // Create shared_ptr codependency: MessageHandler holds Session and
             // Session holds MessaageHandler. The way the duo is released from mem
             // is when a MessageHandler does a session pointer reset, which triggers session
             // deletion, and subsequent MessageHandler deletion.
-            LocalSocketSession::MessageHandler::Ptr pHandler(new T(pSession));
+            // ________________________________________________________________________________________
+            MessageHandler::Ptr pHandler(new T(pSession));
             pSession->SetMessageHandler(pHandler);
+            LOG4CXX_DEBUG(logger_,"LocalSocketSessionHandler::HandleSession session " << pSession.get() << ": starting message handler");
             pHandler->Start();
         }
 
-    private:
-        LocalSocketSession::Ptr pSession_;
+        // logging
+        static log4cxx::LoggerPtr  logger_;
 };
+
+template<typename T>
+log4cxx::LoggerPtr LocalSocketSessionHandler<T>::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
 
 }}  // namespace
 

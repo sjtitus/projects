@@ -1,20 +1,16 @@
+#ifndef _LOCALSOCKETSESSION_H_
+#define _LOCALSOCKETSESSION_H_
+
 /*_____________________________________________________________________________
  *
  *  LocalSocketSession
- *  Session for asynchronous send/receive of string messages over a Unix  
- *  domain (local) socket. Invokes a MessageHandler for application-specific 
- *  message handling.
- *  
- *  Uses boost::asio for asynch network handling.  
+ *  Session for asynchronous read/write of string messages over a Unix  
+ *  domain (local) socket. Invokes a MessageHandler 
+ *  for application-specific message handling.
  *
- *  LocalSocketSessionHandler
- *  Abstract class used for application specific handling of 
- *  LocalSocketSession messages.
+ *  Uses boost::asio for asynch network handling.  
  * ____________________________________________________________________________
 */
-
-#ifndef _LOCALSOCKETSESSION_H_
-#define _LOCALSOCKETSESSION_H_
 
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
@@ -103,48 +99,10 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     // Message handler providing application-level callbacks
     MessageHandler::Ptr pMessageHandler_; 
 
-    public:    
+    private:    
         // logging
         static log4cxx::LoggerPtr  logger_;
 };
-
-
-
-//__________________________________________________________________________
-// LocalSocketSessionHandler: socket session handling.
-// Wires up the session to an application-specific MessageHandler via
-// templating.
-// 
-template<typename T>
-class LocalSocketSessionHandler
-{
-    public:
-        LocalSocketSessionHandler()
-        {
-            BOOST_STATIC_ASSERT((std::is_base_of<MessageHandler, T>::value));
-            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler: construct");
-        }
-
-        void HandleSession( LocalSocketSession::Ptr &pSession )
-        {
-            LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler: handle session " << pSession.get())
-            // Create shared_ptr codependency: MessageHandler holds Session and
-            // Session holds MessaageHandler. The way the duo is released from mem
-            // is when a MessageHandler does a session pointer reset, which triggers session
-            // deletion, and subsequent MessageHandler deletion.
-            MessageHandler::Ptr pHandler(new T(pSession));
-            pSession->SetMessageHandler(pHandler);
-            pHandler->Start();
-        }
-
-       
-    public: 
-        // logging
-        static log4cxx::LoggerPtr  logger_;
-};
-
-template<typename T>
-log4cxx::LoggerPtr LocalSocketSessionHandler<T>::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
 
 
 #else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)

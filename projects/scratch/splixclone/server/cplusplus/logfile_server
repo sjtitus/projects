@@ -1,18 +1,18 @@
-2017-04-23 21:24:58.767340     info:                     main: Server [7f3732d2c720]: started
-2017-04-23 21:24:58.768555     info:                     main: Server [7f3732d2c720]: starting command worker
-2017-04-23 21:24:58.768612     info:                    Start: CommandWorker: spawning command worker thread
-2017-04-23 21:24:58.768681     info:                     main: Server [7f3732d2c720]: starting player worker
-2017-04-23 21:24:58.768704     info:                    Start: PlayerWorker: spawning player worker thread
-2017-04-23 21:24:58.768733     info:                     main: Server [7f3732d2c720]: servers started, joining children
-2017-04-23 21:24:58.768783     info:   PlayerWorkerThreadMain: PlayerWorker [7f3732329700]: started
-2017-04-23 21:24:58.768818     info:   PlayerWorkerThreadMain: PlayerWorker [7f3732329700]: starting player server
-2017-04-23 21:24:58.768966    debug:        LocalSocketServer: construct (file /tmp/splixplayer)
-2017-04-23 21:24:58.768991     info:                    Start: starting (accepting connections on /tmp/splixplayer)
-2017-04-23 21:24:58.769012    debug:       LocalSocketSession: construct no handler:0x7f372c000c50
-2017-04-23 21:24:58.769037     info:   PlayerWorkerThreadMain: PlayerWorker [7f3732329700]: starting async IO
-2017-04-23 21:24:58.769072     info:  CommandWorkerThreadMain: CommandWorker [7f3732d2a700]: started
-2017-04-23 21:24:58.769100     info:  CommandWorkerThreadMain: CommandWorker [7f3732d2a700]: starting command server
-2017-04-23 21:24:58.769140    debug:        LocalSocketServer: construct (file /tmp/splixcommand)
-2017-04-23 21:24:58.769158     info:                    Start: starting (accepting connections on /tmp/splixcommand)
-2017-04-23 21:24:58.769173    debug:       LocalSocketSession: construct no handler:0x7f3724000c50
-2017-04-23 21:24:58.769188     info:  CommandWorkerThreadMain: CommandWorker [7f3732d2a700]: starting async IO
+2017-06-25 19:48:33.850178     info:                     main: Server [7f5bba41f720]: started
+2017-06-25 19:48:33.853290     info:                     main: Server [7f5bba41f720]: starting command worker
+2017-06-25 19:48:33.853348     info:                    Start: CommandWorker: spawning command worker thread
+2017-06-25 19:48:33.853411     info:                     main: Server [7f5bba41f720]: starting player worker
+2017-06-25 19:48:33.853433     info:                    Start: PlayerWorker: spawning player worker thread
+2017-06-25 19:48:33.853462     info:                     main: Server [7f5bba41f720]: servers started, joining children
+2017-06-25 19:48:33.853511     info:   PlayerWorkerThreadMain: PlayerWorker [7f5bb9a1c700]: started
+2017-06-25 19:48:33.853543     info:   PlayerWorkerThreadMain: PlayerWorker [7f5bb9a1c700]: starting player server
+2017-06-25 19:48:33.853628    debug:        LocalSocketServer: construct (file /tmp/splixplayer)
+2017-06-25 19:48:33.853648     info:                    Start: starting (accepting connections on /tmp/splixplayer)
+2017-06-25 19:48:33.853668    debug:       LocalSocketSession: construct no handler:0x7f5bb4000c50
+2017-06-25 19:48:33.853694     info:   PlayerWorkerThreadMain: PlayerWorker [7f5bb9a1c700]: starting async IO
+2017-06-25 19:48:33.853728     info:  CommandWorkerThreadMain: CommandWorker [7f5bba41d700]: started
+2017-06-25 19:48:33.853755     info:  CommandWorkerThreadMain: CommandWorker [7f5bba41d700]: starting command server
+2017-06-25 19:48:33.853790    debug:        LocalSocketServer: construct (file /tmp/splixcommand)
+2017-06-25 19:48:33.853807     info:                    Start: starting (accepting connections on /tmp/splixcommand)
+2017-06-25 19:48:33.853822    debug:       LocalSocketSession: construct no handler:0x7f5bac000c50
+2017-06-25 19:48:33.853838     info:  CommandWorkerThreadMain: CommandWorker [7f5bba41d700]: starting async IO

@@ -33,6 +33,8 @@ SRC_FILES = src/Board.cpp        			\
             src/SimpleException.cpp       	\
 			src/CommandMessageHandler.cpp	\
 			src/LocalSocketSession.cpp		\
+			src/MessageHandler.cpp			\
+			src/LocalSocketServer.cpp		\
             src/UnitTest.cpp
 # src/log4cxx_test.cpp
     

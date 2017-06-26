@@ -1,13 +1,9 @@
 /*_____________________________________________________________________________
  *
  *  LocalSocketSession
- *  Session for asynchronous send/receive of string messages over a Unix  
- *  domain (local) socket. Invokes a LocalSocketSessionHandler (see below)
+ *  Session for asynchronous read/write of string messages over a Unix  
+ *  domain (local) socket. Invokes a MessageHandler 
  *  for application-specific message handling.
- *
- *  LocalSocketSessionHandler
- *  Abstract class used for application specific handling of 
- *  LocalSocketSession messages.
  *
  *  Uses boost::asio for asynch network handling.  
  * ____________________________________________________________________________
@@ -24,6 +20,7 @@
 
 #include "LocalSocketSession.hpp"
 #include "Logging.hpp"
+#include "SimpleException.hpp"
 
 
 // use local (unix domain) sockets
@@ -32,37 +29,42 @@ using boost::asio::local::stream_protocol;
 
 namespace com { namespace dimension3designs {
 
-log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
+    //__________________________________________________________________________
+    // Initialize logger
+    log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.dimension3designs.LocalSocketSession"));
 
     //__________________________________________________________________________
     // Constructor
     LocalSocketSession::LocalSocketSession( boost::asio::io_service& io_service )
-    :socket_(io_service),pMessageHandler_(NULL)
+        :socket_(io_service), 
+         pMessageHandler_(NULL)
     {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession: construct");
+        LOG4CXX_TRACE(logger_,"LocalSocketSession: Construct: " << this);
     } 
     
     //__________________________________________________________________________
     // Destructor 
     LocalSocketSession::~LocalSocketSession()
     {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession: destruct");
+        LOG4CXX_TRACE(logger_,"LocalSocketSession: Destruct: " << this);
     }
     
     //__________________________________________________________________________
     // Connect: Synchronous client connect to the socket file 
     void LocalSocketSession::Connect( const std::string &localFile )
     {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession:sync connect to " << localFile);
+        LOG4CXX_TRACE(logger_,"LocalSocketSession::Connect: file=" << localFile);
         try 
         {
             socket_.connect(stream_protocol::endpoint(localFile));
         } 
-        catch(std::exception &e) 
+        catch(std::exception &e)
         {
-            LOG4CXX_ERROR(logger_,"LocalSocketSession::Connect: exception: " << e.what());
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::Connect: file="+localFile+", exception: " << e.what());
+            RAISE_EXCEPTION(std::string("error connecting to file ")+localFile+": "+ e.what());
         }
     }
+
 
     //__________________________________________________________________________
     // ReadMesssage: Async message read 
@@ -87,6 +89,7 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
         catch(std::exception &e) 
         {
             LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadMessage: exception: " << e.what());
+            RAISE_EXCEPTION(std::string("error reading message: ")+e.what());
         }
     }
 
@@ -95,8 +98,8 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
     // WriteMesssage: Async message write 
     void LocalSocketSession::WriteMessage( const std::string &message )
     {
-        BOOST_ASSERT_MSG(pMessageHandler_,"*** MessageHandler must be defined ***");
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteMessage:: asynch write message, message='" << message << "'");
+        BOOST_ASSERT_MSG(pMessageHandler_,"LocalSocketSession::WriteMessage: MessageHandler must be defined");
+        LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteMessage, len="<< message.size());
         try
         {
             // TODO: make sure message does not contain delimeter
@@ -117,7 +120,8 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
         }
         catch(std::exception &e) 
         {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteMessage: caught exception: " << e.what());
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::WriteMessage: exception: " << e.what());
+            RAISE_EXCEPTION(std::string("error writing message: ")+e.what());
         }
     }
     
@@ -125,16 +129,15 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
     // Close: Close the session 
     void LocalSocketSession::Close()
     {
-        LOG4CXX_TRACE(logger_,"LocalSocketSession::Close: shutting down and closing socket");
+        LOG4CXX_TRACE(logger_,"LocalSocketSession::Close: shutting down then closing socket");
         socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
         socket_.close(); 
     }
 
 
 
-    //
+    //__________________________________________________________________________
     //  HELPERS
-    //
 
 
     //__________________________________________________________________________
@@ -148,13 +151,13 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
             LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadCallback: error reading messaage: " << error.message());
             if (pMessageHandler_)
             { 
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: invoking error handler");
+                LOG4CXX_TRACE(logger_,"LocalSocketSession::ReadCallback: invoking error handler");
                 pMessageHandler_->HandleReadError(error);
             }
         }
         else if (bytes_transferred > 0) 
         {
-            LOG4CXX_TRACE(logger_,"LocalSocketSession::ReadCallback: " << bytes_transferred << " bytes");
+            LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: " << bytes_transferred << " bytes");
             try 
             { 
                 // read entire socket stream into a new message (string) 
@@ -175,7 +178,7 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
                 LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: incoming message: '" <<  *pMessage << "'");
                 if (pMessageHandler_)
                 { 
-                    LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: invoking incoming message handler");
+                    LOG4CXX_TRACE(logger_,"LocalSocketSession::ReadCallback: invoking incoming message handler");
                     pMessageHandler_->HandleRead(std::move(pMessage));
                 }
             }
@@ -186,7 +189,8 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
         }
         else
         {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::ReadCallback: 0 bytes transferred (socket closed?)");
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::ReadCallback: 0 bytes transferred (socket closed?)");
+            RAISE_EXCEPTION(std::string("error reading: 0 bytes transferred (socket closed?)"));
         }
     }
 
@@ -203,10 +207,9 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
             LOG4CXX_ERROR(logger_,"LocalSocketSession::WriteCallback: error during write: " << error.message());
             if (pMessageHandler_)
             {
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: handling error");
+                LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteCallback: invoking error callback");
                 pMessageHandler_->HandleWriteError(error);
             }
-            //THROW_SYSTEM_EXCEPTION("ERROR writing message: " + error.message());
         }
         else if (bytes_transferred > 0)
         { 
@@ -215,17 +218,16 @@ log4cxx::LoggerPtr LocalSocketSession::logger_(log4cxx::Logger::getLogger("com.d
             // request_.consume(request_.size()); 
             if (pMessageHandler_)
             { 
-                LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: invoking write callback");
+                LOG4CXX_TRACE(logger_,"LocalSocketSession::WriteCallback: invoking write callback");
                 pMessageHandler_->HandleWrite(bytes_transferred);
             }
         }
         else
         {
-            LOG4CXX_DEBUG(logger_,"LocalSocketSession::WriteCallback: 0 bytes transferred (socket closed?)");
+            LOG4CXX_ERROR(logger_,"LocalSocketSession::WriteCallback: 0 bytes transferred (socket closed?)");
+            RAISE_EXCEPTION(std::string("error writing: 0 bytes transferred (socket closed?)"));
         }
     }
     
-
-
 
 }}  // namespace
