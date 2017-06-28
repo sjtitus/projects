@@ -9,6 +9,7 @@
 #include "LocalSocketServer.hpp"
 #include "CommandMessageHandler.hpp"
 #include "Logging.hpp"
+#include "uds_client.hpp"
 
 
 namespace com { namespace dimension3designs {
@@ -85,13 +86,17 @@ using namespace com::dimension3designs;
 // Test fixture for LocalSocketSession class 
 class LocalSocketSessionTest : public ::testing::Test {
  protected:
-  LocalSocketSessionTest() {}
+  LocalSocketSessionTest()
+    :client("/tmp/LocalSocketServerTest")
+    {}
+
   virtual ~LocalSocketSessionTest() {}
   virtual void SetUp() {}
   virtual void TearDown() {}
   // Objects declared here can be used by all tests in the test case for LocalSocketSession.
         
   boost::asio::io_service io_service;
+  uds_client client;
 
 };
 
