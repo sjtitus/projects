@@ -32,13 +32,13 @@ class TestMessageHandler: public MessageHandler
         {
             LOG4CXX_TRACE(logger_,"TestMessageHandler::HandleRead: session " << pSession_.get());
             lastMessage = *pMessage;
-            pSession_->WriteMessage(std::string("received message ") + std::to_string(messageNumber++) + "\n");
-            //Close(); 
+            pSession_->WriteMessage(std::string("received message ") + std::to_string(messageNumber++));
         }
         virtual void HandleWrite( size_t bytesWritten )
         {
             LOG4CXX_TRACE(logger_,"TestMessageHandler::HandleWrite: session " << pSession_.get());
-            pSession_->ReadMessage();
+            Close(); 
+            //pSession_->ReadMessage();
         }
         virtual void HandleReadError( const boost::system::error_code& error )
         {
@@ -126,7 +126,18 @@ TEST_F(LocalSocketSessionTest, LocalSocketServer) {
     LocalSocketServer<TestMessageHandler> localServer(io_service,"/tmp/LocalSocketServerTest");
     // start the server 
     localServer.Start();
-    io_service.run(); 
+    // now local server is listening, create a client and connect to the server
+    uds_client client("/tmp/LocalSocketServerTest");
+    client.sconnect();
+    // after server start, a readmessage() call is queued, so let's write a known message
+    // to the server.   
+    client.write_string("message1");
+    // this run should cause a read of "message1" and a reply of "received message 0" 
+    io_service.poll(); 
+    EXPECT_EQ(TestMessageHandler::lastMessage,"message1\n");
+    client.read_string();
+    std::string rmsg(client.buf);
+    EXPECT_EQ(rmsg,"received message 0\n");
 }
 
 
