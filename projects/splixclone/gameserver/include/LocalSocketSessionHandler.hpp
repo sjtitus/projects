@@ -42,6 +42,7 @@ class LocalSocketSessionHandler
         void HandleSession( LocalSocketSession::Ptr &pSession )
         {
             LOG4CXX_TRACE(logger_,"LocalSocketSessionHandler::HandleSession session " << pSession.get());
+            
             // ________________________________________________________________________________________
             // IMPORTANT
             // Create shared_ptr codependency: MessageHandler holds Session and
@@ -49,7 +50,10 @@ class LocalSocketSessionHandler
             // is when a MessageHandler does a session pointer reset, which triggers session
             // deletion, and subsequent MessageHandler deletion.
             // ________________________________________________________________________________________
+           
+            // create a new message handler that will be only reference to the session 
             MessageHandler::Ptr pHandler(new T(pSession));
+            // set the session's message handler
             pSession->SetMessageHandler(pHandler);
             LOG4CXX_DEBUG(logger_,"LocalSocketSessionHandler::HandleSession session " << pSession.get() << ": starting message handler");
             pHandler->Start();

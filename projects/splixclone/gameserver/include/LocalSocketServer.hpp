@@ -93,6 +93,7 @@ class LocalSocketServer
         // TODO: implement
     }
 
+
   private:
     //_________________________________________________________________________
     // AcceptHandler: async callback handling new incoming sessions. 
@@ -112,7 +113,8 @@ class LocalSocketServer
             // Hand the newly-connected session off to the handler 
             sessionHandler_.HandleSession(new_session);
            
-            // Setup for the next connection: reset the smart pointer with a new session
+            // Setup for the next connection: reset the smart pointer with a new session for next
+            // incoming connection.
             LOG4CXX_DEBUG(logger_,"LocalSocketServer::AcceptHandler: resetting for next connection"); 
             new_session.reset(new LocalSocketSession(io_service_));
      

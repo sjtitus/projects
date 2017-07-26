@@ -14,7 +14,6 @@
  *_____________________________________________________________________________
  */ 
 
-
 namespace com { namespace dimension3designs {
 
 class LocalSocketSession;
@@ -52,7 +51,6 @@ class MessageHandler
 };
 
 }}
-
 
 
 #endif

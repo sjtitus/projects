@@ -62,6 +62,7 @@ std::string Game::AddPlayer(const std::string &name)
 void Game::RemovePlayer(const std::string &id)
 {
     LOG4CXX_TRACE(_logger,"Game::RemovePlayer: id="<< id);
+    // TODO: player cleanup? 
     // Logic error if player is not present
     auto present = _PlayerHash.erase(id);
     BOOST_ASSERT_MSG(present==1, "Game::RemovePlayer: player not present");

@@ -49,7 +49,7 @@ class Player
         std::string                                     _GenerateId();     // generate unique player id 
 
 
-    // Move semantics only
+    // Enforce move semantics only
     private:
         Player(const Player&); 
         Player& operator=(const Player&);
