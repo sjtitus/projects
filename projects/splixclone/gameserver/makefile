@@ -35,6 +35,10 @@ SRC_FILES = src/Board.cpp                   \
             src/LocalSocketSession.cpp      \
             src/MessageHandler.cpp          \
             src/LocalSocketServer.cpp       \
+            src/WorkerThread.cpp       		\
+            src/CommandThread.cpp    		\
+            src/PlayerMoveThread.cpp   		\
+            src/GameThread.cpp       		\
             src/UnitTest.cpp
 # src/log4cxx_test.cpp
     

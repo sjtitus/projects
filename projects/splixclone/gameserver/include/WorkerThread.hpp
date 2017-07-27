@@ -1,8 +1,12 @@
+#ifndef _WORKERTHREAD_H_
+#define _WORKERTHREAD_H_
+
 /*______________________________________________________________________________
  * WorkerThread
  * Simple class that wraps boost::thread.
  *______________________________________________________________________________
 */
+
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -25,7 +29,7 @@ class WorkerThread
     // Do the work
     virtual void DoWork()
     {
-        LOG4CXX_TRACE(_logger,"WorkerThread::ThreadMain: starting work for thread " << name_); 
+        LOG4CXX_TRACE(_logger,"WorkerThread::DoWork: starting work for thread " << name_); 
     }
 
     void Start()
@@ -40,15 +44,13 @@ class WorkerThread
         return thread_;
     }
 
-    private:
+    protected:
         boost::thread thread_;
         std::string name_;
         static log4cxx::LoggerPtr _logger;
 };
 
-// Logging 
-using namespace log4cxx;
-using namespace log4cxx::helpers;
-LoggerPtr WorkerThread::_logger(Logger::getLogger("com.dimension3designs.WorkerThread"));
 
 }}
+
+#endif

@@ -4,6 +4,7 @@
  *_____________________________________________________________________________
 */
 #include "WorkerThread.hpp"
+#include "CommandThread.hpp"
 
 
 namespace com { namespace dimension3designs {
@@ -35,6 +36,13 @@ class WorkerThreadTest : public ::testing::Test {
 TEST_F(WorkerThreadTest, InitialState) {
     TMSG("WorkerThread Initial State\n");
     WorkerThread testThread("Bob");
+    testThread.Start();
+    testThread.Thread().join();
+}
+
+TEST_F(WorkerThreadTest, CommandThreadInitialState) {
+    TMSG("CommandThread Initial State\n");
+    CommandThread testThread("Command Bob");
     testThread.Start();
     testThread.Thread().join();
 }
