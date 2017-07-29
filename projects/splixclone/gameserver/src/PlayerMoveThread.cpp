@@ -8,7 +8,6 @@
 
 namespace com { namespace dimension3designs {
 
-
 PlayerMoveThread::PlayerMoveThread( const std::string &name )
     :WorkerThread(name)
 {
@@ -17,7 +16,20 @@ PlayerMoveThread::PlayerMoveThread( const std::string &name )
 
 void PlayerMoveThread::DoWork()
 {
-    LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: starting work for thread " << name_); 
+    try
+    {
+        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: starting work for thread " << name_); 
+        while (true)
+        {
+            LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: sleeping for 2 seconds");
+            boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
+            boost::this_thread::interruption_point();
+        }
+    }
+    catch (const boost::thread_interrupted& e)
+    {
+        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: stopping");
+    }
 }
 
 

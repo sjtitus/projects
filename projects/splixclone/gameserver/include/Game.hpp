@@ -17,6 +17,10 @@
 #include "Player.hpp"
 #include "Logging.hpp"
 
+#include "CommandThread.hpp"
+#include "PlayerMoveThread.hpp"
+#include "GameThread.hpp"
+
 namespace com { namespace dimension3designs {
 
 class Game
@@ -67,19 +71,21 @@ class Game
         // Command Thread
         // Thread that receives and queues game commands 
         // (start/stop game, add a player, remove a player, ...)
+        std::unique_ptr<com::dimension3designs::CommandThread>      _pCommandThread;
 
         //_______________________________________________
         // PlayerMove Thread 
         // Thread that receives and queues player moves 
+        std::unique_ptr<com::dimension3designs::PlayerMoveThread>   _pPlayerMoveThread;
  
         //_______________________________________________
         // Game Thread 
         // Thread that runs the main game loop
         // (get input, compute new board state, render, ...)
-        
-        
+        std::unique_ptr<com::dimension3designs::GameThread>         _pGameThread;
         
 };
+
 
 }}
 

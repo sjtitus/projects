@@ -44,9 +44,13 @@ TEST_F(WorkerThreadTest, CommandThreadInitialState) {
     TMSG("CommandThread Initial State\n");
     CommandThread testThread("Command Bob");
     testThread.Start();
-    testThread.Thread().join();
+    boost::this_thread::sleep_for(boost::chrono::seconds(10)); 
+    TMSG("Stopping\n");
+    testThread.Stop();
+    boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
 }
 
 }  // namespace
 
 }}
+

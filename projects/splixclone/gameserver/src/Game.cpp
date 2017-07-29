@@ -19,10 +19,13 @@ LoggerPtr Game::_logger(Logger::getLogger("com.dimension3designs.Game"));
 
 
 // Constructors
-Game::Game(uint32_t board_width, uint32_t board_height)
+Game::Game(uint32_t board_width, uint32_t board_height):
+    _pBoard(std::unique_ptr<Board>( new Board(board_width,board_height))),
+    _pCommandThread(std::unique_ptr<CommandThread>( new CommandThread("CommandThread"))),
+    _pPlayerMoveThread(std::unique_ptr<PlayerMoveThread>( new PlayerMoveThread("PlayerMoveThread"))),
+    _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread")))
 {
-    LOG4CXX_TRACE(_logger,"Game::Game: board width="<<board_width<<", board height="<<board_height);
-    _pBoard = std::unique_ptr<Board>( new Board(board_width,board_height) );
+    LOG4CXX_TRACE(_logger,"Game::Game: board width="<<_pBoard->width()<<", board height="<<_pBoard->height());
     LOG4CXX_TRACE(_logger,"Game::Game ok"); 
 }
 
@@ -69,6 +72,28 @@ void Game::RemovePlayer(const std::string &id)
     LOG4CXX_TRACE(_logger,"Game::RemovePlayer: ok");
 }
 
+
+void Game::Start()
+{
+    LOG4CXX_TRACE(_logger,"Game::Start: Starting"); 
+    _pCommandThread->Start();
+    _pPlayerMoveThread->Start();
+    _pGameThread->Start();
+    LOG4CXX_TRACE(_logger,"Game::Start: Started"); 
+}
+
+
+void Game::Stop()
+{
+    LOG4CXX_TRACE(_logger,"Game::Stop: Stopping"); 
+    _pCommandThread->Stop();
+    _pPlayerMoveThread->Stop();
+    _pGameThread->Stop();
+    _pCommandThread->Thread().join();
+    _pPlayerMoveThread->Thread().join();
+    _pGameThread->Thread().join();
+    LOG4CXX_TRACE(_logger,"Game::Stop: Stopped"); 
+}
 
 
 

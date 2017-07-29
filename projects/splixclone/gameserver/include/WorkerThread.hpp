@@ -36,6 +36,15 @@ class WorkerThread
     {
         LOG4CXX_TRACE(_logger,"WorkerThread::Start: start thread " << name_); 
         thread_ = boost::thread( boost::bind( &WorkerThread::DoWork, this) );
+        LOG4CXX_TRACE(_logger,"WorkerThread::Start: thread started, id: " << thread_.get_id()); 
+    }
+    
+    // Stop the thread
+    // Note: DoWork must implement interruption points for stopping to work 
+    void Stop()
+    {
+        LOG4CXX_TRACE(_logger,"WorkerThread::Stop: stopping thread " << name_); 
+        thread_.interrupt();
     }
 
     // Accessor for underlying thread

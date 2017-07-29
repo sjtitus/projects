@@ -17,7 +17,20 @@ GameThread::GameThread( const std::string &name )
 
 void GameThread::DoWork()
 {
-    LOG4CXX_TRACE(_logger,"GameThread::DoWork: starting work for thread " << name_); 
+    try
+    {
+        LOG4CXX_TRACE(_logger,"GameThread::DoWork: starting work for thread " << name_); 
+        while (true)
+        {
+            LOG4CXX_TRACE(_logger,"GameThread::DoWork: sleeping for 2 seconds");
+            boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
+            boost::this_thread::interruption_point();
+        }
+    }
+    catch (const boost::thread_interrupted& e)
+    {
+        LOG4CXX_TRACE(_logger,"GameThread::DoWork: stopping");
+    }
 }
 
 

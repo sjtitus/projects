@@ -67,5 +67,14 @@ TEST_F(GameTest, RemovePlayer) {
 }
 
 
+TEST_F(GameTest, Start) {
+    Game g(1000,5000);
+    g.Start(); 
+    boost::this_thread::sleep_for(boost::chrono::seconds(10)); 
+    g.Stop(); 
+    boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
+}
+
+
 
 }  // namespace
