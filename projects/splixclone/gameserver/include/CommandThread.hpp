@@ -17,6 +17,9 @@ class CommandThread: public WorkerThread
     CommandThread( const std::string &name );
     
     void DoWork() override; 
+
+    private:
+    void DummyWork();
 };
 
 

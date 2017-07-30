@@ -62,7 +62,6 @@ class Game
         std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _PlayerHash;    // hash of players 
         static log4cxx::LoggerPtr                                                           _logger;        // logging
 
-
         //-------------
         // Threads
         //-------------
@@ -83,7 +82,8 @@ class Game
         // Thread that runs the main game loop
         // (get input, compute new board state, render, ...)
         std::unique_ptr<com::dimension3designs::GameThread>         _pGameThread;
-        
+
+ 
 };
 
 

@@ -73,14 +73,20 @@ void Game::RemovePlayer(const std::string &id)
 }
 
 
+
 void Game::Start()
 {
     LOG4CXX_TRACE(_logger,"Game::Start: Starting"); 
+
     _pCommandThread->Start();
+
     _pPlayerMoveThread->Start();
+
     _pGameThread->Start();
+
     LOG4CXX_TRACE(_logger,"Game::Start: Started"); 
 }
+
 
 
 void Game::Stop()
