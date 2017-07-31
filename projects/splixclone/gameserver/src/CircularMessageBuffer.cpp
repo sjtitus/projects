@@ -28,17 +28,19 @@ CircularMessageBuffer::CircularMessageBuffer(std::size_t size)
 
 //_____________________________________________________________________________
 // Push a message onto the tail
-bool CircularMessageBuffer::PushBack(std::unique_ptr<std::string> &pMessage)
+// Returns 
+bool CircularMessageBuffer::PushBack(const std::string &msg)
 {
+    bool wasFull = false;
     boost::mutex::scoped_lock lock(io_mutex_);
     if (_message_buffer.full())
     {
-        LOG4CXX_ERROR(_logger,"*** DATA LOSS ***: push to full message buffer");
-        return false; 
+        LOG4CXX_WARN(_logger,"*** DATA LOSS ***: push to full message buffer");
+        wasFull = true; 
     }
     LOG4CXX_DEBUG(_logger,"pushing a message");
-    _message_buffer.push_back(std::move(pMessage));
-    return true;
+    _message_buffer.push_back(std::unique_ptr<std::string>(new std::string(msg)));
+    return wasFull; 
 }
 
 

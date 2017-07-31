@@ -31,12 +31,8 @@ class CircularMessageBuffer
     CircularMessageBuffer(std::size_t size);
     
     //_____________________________________________________________________________
-    // GetInstance: get singleton instance
-    static CircularMessageBuffer::Ptr GetInstance();
-
-    //_____________________________________________________________________________
     // Push a message onto the tail
-    bool PushBack(std::unique_ptr<std::string> &pMessage); 
+    bool PushBack(const std::string &msg);
 
     //_____________________________________________________________________________
     // Pop and return a message from the head 

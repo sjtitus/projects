@@ -23,7 +23,8 @@ Game::Game(uint32_t board_width, uint32_t board_height):
     _pBoard(std::unique_ptr<Board>( new Board(board_width,board_height))),
     _pCommandThread(std::unique_ptr<CommandThread>( new CommandThread("CommandThread"))),
     _pPlayerMoveThread(std::unique_ptr<PlayerMoveThread>( new PlayerMoveThread("PlayerMoveThread"))),
-    _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread")))
+    _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread"))),
+    _commandBuffer(Game::COMMAND_BUFFER_SIZE)
 {
     LOG4CXX_TRACE(_logger,"Game::Game: board width="<<_pBoard->width()<<", board height="<<_pBoard->height());
     LOG4CXX_TRACE(_logger,"Game::Game ok"); 
@@ -44,14 +45,24 @@ std::string Game::AddPlayer(const std::string &name)
     auto id = pPlayer->GetId();
 
     // store the player by id
-    auto iresult = _PlayerHash.insert(std::make_pair(id,std::move(pPlayer)));
+    auto iresult = _playerHash.insert(std::make_pair(id,std::move(pPlayer)));
     if (!iresult.second)
     {
         // non-unique id: abort
         RAISE_EXCEPTION("Game::AddPlayer: failed to add player "+id+" (non-unique id?)");
     }
+    
+    // add a circular buffer to store the new player's moves    
+    LOG4CXX_TRACE(_logger,"Game::AddPlayer: adding move buffer for player "<< name);
+    auto pPlayerMoveBuffer = std::unique_ptr<CircularMessageBuffer>( new CircularMessageBuffer(Game::PLAYERMOVE_BUFFER_SIZE) );
+    auto iresult2 = _playerMoveBufferHash.insert(std::make_pair(id,std::move(pPlayerMoveBuffer)));
+    if (!iresult2.second)
+    {
+        // failed to add buffer for player moves 
+        RAISE_EXCEPTION("Game::AddPlayer: failed to add buffer for player "+id+" moves");
+    }
 
-    LOG4CXX_TRACE(_logger,"Game::AddPlayer: ok (id="<< id <<")"); 
+    LOG4CXX_TRACE(_logger,"Game::AddPlayer: ok (name="<< name <<", id="<< id <<")"); 
     return id;
 }
 
@@ -65,10 +76,18 @@ std::string Game::AddPlayer(const std::string &name)
 void Game::RemovePlayer(const std::string &id)
 {
     LOG4CXX_TRACE(_logger,"Game::RemovePlayer: id="<< id);
+
     // TODO: player cleanup? 
+
+    // Remove from playerHash
     // Logic error if player is not present
-    auto present = _PlayerHash.erase(id);
+    auto present = _playerHash.erase(id);
     BOOST_ASSERT_MSG(present==1, "Game::RemovePlayer: player not present");
+
+    // Remove move buffer from playerMoveBufferHash
+    auto present2 = _playerMoveBufferHash.erase(id);
+    BOOST_ASSERT_MSG(present2==1, "Game::RemovePlayer: player move buffer not present");
+
     LOG4CXX_TRACE(_logger,"Game::RemovePlayer: ok");
 }
 
@@ -116,15 +135,15 @@ std::vector<std::string> Game::FindPlayers(const std::string &name)
     if (name.size()==0)
     {
         // return all the players
-        playerList.reserve(_PlayerHash.size());
-        for(auto &kv : _PlayerHash) {
+        playerList.reserve(_playerHash.size());
+        for(auto &kv : _playerHash) {
             playerList.push_back(kv.first);  
         }
     }
     else
     {
         // return all matching players
-        for(auto &kv : _PlayerHash) {
+        for(auto &kv : _playerHash) {
             if (kv.second->Name() == name)
             {
                 playerList.push_back(kv.first);

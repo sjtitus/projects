@@ -13,13 +13,15 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+
 #include "Board.hpp"
 #include "Player.hpp"
 #include "Logging.hpp"
-
 #include "CommandThread.hpp"
 #include "PlayerMoveThread.hpp"
 #include "GameThread.hpp"
+#include "CircularMessageBuffer.hpp"
+
 
 namespace com { namespace dimension3designs {
 
@@ -48,7 +50,7 @@ class Game
   
         size_t NumPlayers()                                
         { 
-            return _PlayerHash.size(); 
+            return _playerHash.size(); 
         }
 
         //_______________________________________________
@@ -59,12 +61,8 @@ class Game
 
     private:
         std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // game owns the board
-        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _PlayerHash;    // hash of players 
+        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _playerHash;    // hash of players 
         static log4cxx::LoggerPtr                                                           _logger;        // logging
-
-        //-------------
-        // Threads
-        //-------------
 
         //_______________________________________________
         // Command Thread
@@ -82,7 +80,16 @@ class Game
         // Thread that runs the main game loop
         // (get input, compute new board state, render, ...)
         std::unique_ptr<com::dimension3designs::GameThread>         _pGameThread;
-
+        
+        //_______________________________________________
+        // Circular Buffer that queues commands
+        static const size_t COMMAND_BUFFER_SIZE = 32; 
+        CircularMessageBuffer _commandBuffer;
+       
+        //_______________________________________________
+        // Hash of circular buffers that queues player moves for each player 
+        static const size_t PLAYERMOVE_BUFFER_SIZE = 512; 
+        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::CircularMessageBuffer>>    _playerMoveBufferHash;
  
 };
 
