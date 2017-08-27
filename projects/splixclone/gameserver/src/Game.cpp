@@ -14,16 +14,19 @@ using namespace com::dimension3designs;
 
 namespace com { namespace dimension3designs {
 
+
 // Logging 
 LoggerPtr Game::_logger(Logger::getLogger("com.dimension3designs.Game"));
 
 
 // Constructors
 Game::Game(uint32_t board_width, uint32_t board_height):
+    _COMMAND_SOCKET_FILE("/tmp/splixclone_command_socket"),
+    _PLAYERMOVE_SOCKET_FILE("/tmp/splixclone_player_socket"),
     _pBoard(std::unique_ptr<Board>( new Board(board_width,board_height))),
-    _pCommandThread(std::unique_ptr<CommandThread>( new CommandThread("CommandThread"))),
-    _pPlayerMoveThread(std::unique_ptr<PlayerMoveThread>( new PlayerMoveThread("PlayerMoveThread"))),
-    _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread"))),
+    _pCommandThread(std::unique_ptr<CommandThread>( new CommandThread("CommandThread",this))),
+    _pPlayerMoveThread(std::unique_ptr<PlayerMoveThread>( new PlayerMoveThread("PlayerMoveThread",this))),
+    _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread",this))),
     _commandBuffer(Game::COMMAND_BUFFER_SIZE)
 {
     LOG4CXX_TRACE(_logger,"Game::Game: board width="<<_pBoard->width()<<", board height="<<_pBoard->height());
@@ -95,8 +98,9 @@ void Game::RemovePlayer(const std::string &id)
 
 void Game::Start()
 {
-    LOG4CXX_TRACE(_logger,"Game::Start: Starting"); 
+    LOG4CXX_TRACE(_logger,"Game::Start: Starting (game object="<<this<<")"); 
 
+    // Start all the game threads
     _pCommandThread->Start();
 
     _pPlayerMoveThread->Start();

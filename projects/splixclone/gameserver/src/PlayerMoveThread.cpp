@@ -8,17 +8,20 @@
 
 namespace com { namespace dimension3designs {
 
-PlayerMoveThread::PlayerMoveThread( const std::string &name )
-    :WorkerThread(name)
+
+PlayerMoveThread::PlayerMoveThread( const std::string &name, Game *pGame )
+    :WorkerThread(name),
+     _pGame(pGame)
 {
-    LOG4CXX_TRACE(_logger,"PlayerMoveThread::PlayerMoveThread: construct thread " << name_); 
+    LOG4CXX_TRACE(_logger,"PlayerMoveThread::PlayerMoveThread: construct thread " << _name); 
+    LOG4CXX_TRACE(_logger,"PlayerMoveThread::PlayerMoveThread: game " << _pGame); 
 }
 
 void PlayerMoveThread::DoWork()
 {
     try
     {
-        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: starting work for thread " << name_); 
+        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: starting work for thread " << _name);
         while (true)
         {
             LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: sleeping for 2 seconds");

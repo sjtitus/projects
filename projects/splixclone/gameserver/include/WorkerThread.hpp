@@ -20,42 +20,42 @@ class WorkerThread
     
     // Constructor
     WorkerThread( const std::string &name  )
-        :name_(name)
+        :_name(name)
     {
-        LOG4CXX_TRACE(_logger,"WorkerThread::WorkerThread: construct thread " << name_); 
+        LOG4CXX_TRACE(_logger,"WorkerThread::WorkerThread: construct thread " << _name); 
     } 
 
 
     // Do the work
     virtual void DoWork()
     {
-        LOG4CXX_TRACE(_logger,"WorkerThread::DoWork: starting work for thread " << name_); 
+        LOG4CXX_TRACE(_logger,"WorkerThread::DoWork: starting work for thread " << _name);
     }
 
     void Start()
     {
-        LOG4CXX_TRACE(_logger,"WorkerThread::Start: start thread " << name_); 
-        thread_ = boost::thread( boost::bind( &WorkerThread::DoWork, this) );
-        LOG4CXX_TRACE(_logger,"WorkerThread::Start: thread started, id: " << thread_.get_id()); 
+        LOG4CXX_TRACE(_logger,"WorkerThread::Start: start thread " << _name); 
+        _thread = boost::thread( boost::bind( &WorkerThread::DoWork, this ));
+        LOG4CXX_TRACE(_logger,"WorkerThread::Start: thread started, id: " << _thread.get_id()); 
     }
     
     // Stop the thread
     // Note: DoWork must implement interruption points for stopping to work 
     void Stop()
     {
-        LOG4CXX_TRACE(_logger,"WorkerThread::Stop: stopping thread " << name_); 
-        thread_.interrupt();
+        LOG4CXX_TRACE(_logger,"WorkerThread::Stop: stopping thread " << _name); 
+        _thread.interrupt();
     }
 
     // Accessor for underlying thread
     boost::thread& Thread()
     {
-        return thread_;
+        return _thread;
     }
 
     protected:
-        boost::thread thread_;
-        std::string name_;
+        boost::thread _thread;
+        std::string _name;
         static log4cxx::LoggerPtr _logger;
 };
 

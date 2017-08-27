@@ -52,11 +52,14 @@ class Game
         { 
             return _playerHash.size(); 
         }
-
+    
         //_______________________________________________
         // Game Management
         void Start();
         void Stop();         
+        
+        const std::string _COMMAND_SOCKET_FILE;
+        const std::string _PLAYERMOVE_SOCKET_FILE;
 
 
     private:
@@ -92,6 +95,7 @@ class Game
         std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::CircularMessageBuffer>>    _playerMoveBufferHash;
  
 };
+        
 
 
 }}

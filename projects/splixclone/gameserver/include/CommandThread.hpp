@@ -8,18 +8,21 @@
 
 #include "WorkerThread.hpp"
 
+
 namespace com { namespace dimension3designs {
+
+class Game;
 
 class CommandThread: public WorkerThread 
 {
     public:
-
-    CommandThread( const std::string &name );
-    
-    void DoWork() override; 
+        CommandThread( const std::string &name, Game *pGame );
+        void DoWork() override; 
 
     private:
-    void DummyWork();
+        Game *_pGame;       // game thread is running in
+        
+        void DummyWork();
 };
 
 
