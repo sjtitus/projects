@@ -102,9 +102,7 @@ void Game::Start()
 
     // Start all the game threads
     _pCommandThread->Start();
-
     _pPlayerMoveThread->Start();
-
     _pGameThread->Start();
 
     LOG4CXX_TRACE(_logger,"Game::Start: Started"); 

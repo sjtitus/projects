@@ -20,6 +20,13 @@ CommandThread::CommandThread( const std::string &name, Game *pGame )
 {
     LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: construct thread " << _name << "(game " << _pGame << ")"); 
 }
+    
+void CommandThread::Stop()
+{
+    LOG4CXX_TRACE(_logger,"CommandThread::Stop: stopping thread " << _name << " via io_service.stop()"); 
+    _io_service.stop();
+    //_thread.interrupt();
+}
 
 
 void CommandThread::DoWork()
@@ -30,13 +37,13 @@ void CommandThread::DoWork()
         LOG4CXX_TRACE(_logger,"CommandThread::DoWork: command socket " << _pGame->_COMMAND_SOCKET_FILE);
  
         // Set up a local socket server to handle incoming commands 
-        boost::asio::io_service io_service;
         unlink(_pGame->_COMMAND_SOCKET_FILE.c_str());
-        LocalSocketServer<CommandMessageHandler> localServer(io_service, _pGame->_COMMAND_SOCKET_FILE);
+        CommandMessageHandler::SetGame(_pGame);
+        LocalSocketServer<CommandMessageHandler> localServer(_io_service, _pGame->_COMMAND_SOCKET_FILE);
 
         // start the server 
         localServer.Start();
-        io_service.run();
+        _io_service.run();
         LOG4CXX_TRACE(_logger,"CommandThread::DoWork: exiting");
     }
     catch (const boost::thread_interrupted& e)

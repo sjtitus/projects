@@ -5,6 +5,7 @@
 */
 
 #include "GameThread.hpp"
+#include "Game.hpp"
 
 namespace com { namespace dimension3designs {
 
@@ -26,6 +27,12 @@ void GameThread::DoWork()
         {
             LOG4CXX_TRACE(_logger,"GameThread::DoWork: sleeping for 2 seconds");
             boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
+            LOG4CXX_TRACE(_logger,"GameThread::DoWork: checking for commands");
+            std::unique_ptr<std::string> pMessage = _pGame->CommandBuffer().PopFront();
+            if (pMessage)
+            {
+                LOG4CXX_TRACE(_logger,"GameThread::DoWork: got a command --> " << *pMessage); 
+            }
             boost::this_thread::interruption_point();
         }
     }

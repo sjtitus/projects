@@ -42,29 +42,28 @@ class Game
 
         //_______________________________________________
         // Player Management
-        std::string AddPlayer(const std::string &name);
-
-        std::vector<std::string> FindPlayers(const std::string &name=""); 
-
-        void RemovePlayer(const std::string &id);
-  
-        size_t NumPlayers()                                
-        { 
-            return _playerHash.size(); 
-        }
+        std::string                 AddPlayer(const std::string &name);
+        void                        RemovePlayer(const std::string &id);
+        std::vector<std::string>    FindPlayers(const std::string &name=""); 
+        size_t                      NumPlayers()                                { return _playerHash.size(); }
     
         //_______________________________________________
         // Game Management
         void Start();
         void Stop();         
-        
+       
+        //_______________________________________________
+        // Constants 
         const std::string _COMMAND_SOCKET_FILE;
         const std::string _PLAYERMOVE_SOCKET_FILE;
 
 
+        CircularMessageBuffer& CommandBuffer() { return _commandBuffer; }
+        
+
     private:
-        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // game owns the board
-        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _playerHash;    // hash of players 
+        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // the board
+        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _playerHash;    // hash of players by id
         static log4cxx::LoggerPtr                                                           _logger;        // logging
 
         //_______________________________________________
@@ -75,13 +74,13 @@ class Game
 
         //_______________________________________________
         // PlayerMove Thread 
-        // Thread that receives and queues player moves 
+        // Thread that receives and queues player moves
+        // coming from the web application 
         std::unique_ptr<com::dimension3designs::PlayerMoveThread>   _pPlayerMoveThread;
  
         //_______________________________________________
         // Game Thread 
         // Thread that runs the main game loop
-        // (get input, compute new board state, render, ...)
         std::unique_ptr<com::dimension3designs::GameThread>         _pGameThread;
         
         //_______________________________________________
@@ -90,12 +89,13 @@ class Game
         CircularMessageBuffer _commandBuffer;
        
         //_______________________________________________
-        // Hash of circular buffers that queues player moves for each player 
+        // Hash of circular buffers 
+        // Each buffer queues player moves for a single player 
         static const size_t PLAYERMOVE_BUFFER_SIZE = 512; 
         std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::CircularMessageBuffer>>    _playerMoveBufferHash;
  
 };
-        
+ 
 
 
 }}

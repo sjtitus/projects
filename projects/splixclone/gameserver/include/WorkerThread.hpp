@@ -41,7 +41,7 @@ class WorkerThread
     
     // Stop the thread
     // Note: DoWork must implement interruption points for stopping to work 
-    void Stop()
+    virtual void Stop()
     {
         LOG4CXX_TRACE(_logger,"WorkerThread::Stop: stopping thread " << _name); 
         _thread.interrupt();

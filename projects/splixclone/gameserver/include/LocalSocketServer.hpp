@@ -66,6 +66,7 @@ class LocalSocketServer
 
             // asynch accept of a connection using the new session's
             // socket (callback = AcceptHandler method)
+            LOG4CXX_DEBUG(logger_,"LocalSocketServer::Start: Asynchronously accepting connections"); 
             acceptor_.async_accept(
                 new_session->Socket(),
                 boost::bind(

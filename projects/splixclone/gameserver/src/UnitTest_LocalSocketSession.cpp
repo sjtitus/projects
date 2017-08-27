@@ -87,7 +87,7 @@ using namespace com::dimension3designs;
 class LocalSocketSessionTest : public ::testing::Test {
  protected:
   LocalSocketSessionTest()
-    :client("/tmp/LocalSocketServerTest")
+    //:client("/tmp/LocalSocketServerTest")
     {}
 
   virtual ~LocalSocketSessionTest() {}
@@ -96,7 +96,7 @@ class LocalSocketSessionTest : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for LocalSocketSession.
         
   boost::asio::io_service io_service;
-  uds_client client;
+  //uds_client client;
 
 };
 

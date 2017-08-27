@@ -6,6 +6,7 @@
  
 #include "Game.hpp"
 #include "Logging.hpp"
+#include "uds_client.hpp"
 
 namespace {
 
@@ -70,7 +71,13 @@ TEST_F(GameTest, RemovePlayer) {
 TEST_F(GameTest, Start) {
     Game g(1000,5000);
     g.Start(); 
-    boost::this_thread::sleep_for(boost::chrono::seconds(10)); 
+    boost::this_thread::sleep_for(boost::chrono::seconds(4)); 
+    TMSG("Sending a message to command socket\n");
+    uds_client client("/tmp/splixclone_command_socket");
+    client.sconnect();
+    client.write_string("command1");
+    TMSG("Waiting prior to stopping\n");
+    boost::this_thread::sleep_for(boost::chrono::seconds(6)); 
     g.Stop(); 
     boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
 }

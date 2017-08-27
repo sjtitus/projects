@@ -28,7 +28,7 @@ CircularMessageBuffer::CircularMessageBuffer(std::size_t size)
 
 //_____________________________________________________________________________
 // Push a message onto the tail
-// Returns 
+// Returns true if message could not be pushed 
 bool CircularMessageBuffer::PushBack(const std::string &msg)
 {
     bool wasFull = false;

@@ -8,16 +8,23 @@
 
 namespace com { namespace dimension3designs {
 
+class Game;
+
 class CommandMessageHandler: public MessageHandler
 {
     public:
         CommandMessageHandler(boost::shared_ptr<LocalSocketSession> &pSession);
-        virtual void HandleRead( std::unique_ptr<std::string> pMessage );
-        virtual void HandleWrite( size_t bytesWritten );
-        virtual void HandleReadError( const boost::system::error_code& error );
-        virtual void HandleWriteError( const boost::system::error_code& error );
-        virtual void Start();
-        virtual void Close();
+        void HandleRead( std::unique_ptr<std::string> pMessage ) override;
+        void HandleWrite( size_t bytesWritten ) override;
+        void HandleReadError( const boost::system::error_code& error ) override;
+        void HandleWriteError( const boost::system::error_code& error ) override;
+        void Start() override;
+        void Close() override;
+
+        static void SetGame(Game *pGame) { _c_pGame = pGame; }
+
+    private:
+        static Game *_c_pGame;  
 };
 
 }}
