@@ -18,7 +18,7 @@ class Position
     public:
 
         // Constructors
-        Position() : _x(0x80), _y(0x80)                 {}
+        Position() : _x(0x00000080), _y(0x00000080)                 {}
         Position(uint32_t x, uint32_t y) : _x(x), _y(y) {}
         
         // Accessors

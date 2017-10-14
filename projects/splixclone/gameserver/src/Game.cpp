@@ -55,7 +55,7 @@ std::string Game::AddPlayer(const std::string &name)
         RAISE_EXCEPTION("Game::AddPlayer: failed to add player "+id+" (non-unique id?)");
     }
     
-    // add a circular buffer to store the new player's moves    
+    // add a circular buffer to store the new player's incoming moves    
     LOG4CXX_TRACE(_logger,"Game::AddPlayer: adding move buffer for player "<< name);
     auto pPlayerMoveBuffer = std::unique_ptr<CircularMessageBuffer>( new CircularMessageBuffer(Game::PLAYERMOVE_BUFFER_SIZE) );
     auto iresult2 = _playerMoveBufferHash.insert(std::make_pair(id,std::move(pPlayerMoveBuffer)));

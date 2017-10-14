@@ -18,7 +18,8 @@ namespace com { namespace dimension3designs {
             
 // Constructor 
 Player::Player(const std::string &name, Board * const pBoard)
-: _name(name), _pBoard(pBoard) 
+: _name(name), _pBoard(pBoard), _rgbColor(0xFF0000), _inside(true), 
+  _direction(Player::Direction::Stop)  
 {
     _id = _GenerateId();
 }    
