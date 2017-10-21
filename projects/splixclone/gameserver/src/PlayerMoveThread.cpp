@@ -21,17 +21,16 @@ void PlayerMoveThread::DoWork()
 {
     try
     {
-        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: starting work for thread " << _name);
+        LOG4CXX_TRACE(_logger,"PlayerMoveThread:: starting");
         while (true)
         {
-            LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: sleeping for 2 seconds");
-            boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
+            boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
             boost::this_thread::interruption_point();
         }
     }
     catch (const boost::thread_interrupted& e)
     {
-        LOG4CXX_TRACE(_logger,"PlayerMoveThread::DoWork: stopping");
+        LOG4CXX_TRACE(_logger,"PlayerMoveThread:: stopping");
     }
 }
 

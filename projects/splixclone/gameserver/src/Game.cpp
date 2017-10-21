@@ -29,8 +29,11 @@ Game::Game(uint32_t board_width, uint32_t board_height):
     _pGameThread(std::unique_ptr<GameThread>( new GameThread("GameThread",this))),
     _commandBuffer(Game::COMMAND_BUFFER_SIZE)
 {
+    LOG4CXX_TRACE(_logger,"Game::Game: construct"); 
     LOG4CXX_TRACE(_logger,"Game::Game: board width="<<_pBoard->width()<<", board height="<<_pBoard->height());
-    LOG4CXX_TRACE(_logger,"Game::Game ok"); 
+    LOG4CXX_TRACE(_logger,"Game::Game: threads created (game, command, player movement)");
+    LOG4CXX_TRACE(_logger,"Game::Game: command buffer size = " << Game::COMMAND_BUFFER_SIZE); 
+    LOG4CXX_TRACE(_logger,"Game::Game: construct ok"); 
 }
 
 //______________________________________________________________________________
@@ -106,6 +109,13 @@ void Game::Start()
     _pGameThread->Start();
 
     LOG4CXX_TRACE(_logger,"Game::Start: Started"); 
+}
+
+
+void Game::Join()
+{
+    LOG4CXX_TRACE(_logger,"Game::Join: Joining command thread"); 
+    _pCommandThread->Thread().join();
 }
 
 

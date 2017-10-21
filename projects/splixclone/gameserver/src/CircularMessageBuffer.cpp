@@ -29,7 +29,27 @@ CircularMessageBuffer::CircularMessageBuffer(std::size_t size)
 //_____________________________________________________________________________
 // Push a message onto the tail
 // Returns true if message could not be pushed 
-bool CircularMessageBuffer::PushBack(const std::string &msg)
+//bool CircularMessageBuffer::PushBack(const std::string &msg)
+bool CircularMessageBuffer::PushBack( std::unique_ptr<std::string> pMessage )
+{
+    bool wasFull = false;
+    boost::mutex::scoped_lock lock(io_mutex_);
+    if (_message_buffer.full())
+    {
+        LOG4CXX_WARN(_logger,"*** DATA LOSS ***: push to full message buffer");
+        wasFull = true; 
+    }
+    LOG4CXX_DEBUG(_logger,"pushing a message");
+    _message_buffer.push_back(std::move(pMessage));
+    return wasFull; 
+}
+
+
+//_____________________________________________________________________________
+// Push a message onto the tail
+// Returns true if message could not be pushed 
+//bool CircularMessageBuffer::PushBack(const std::string &msg)
+bool CircularMessageBuffer::PushBack( const std::string &msg )
 {
     bool wasFull = false;
     boost::mutex::scoped_lock lock(io_mutex_);
@@ -44,6 +64,7 @@ bool CircularMessageBuffer::PushBack(const std::string &msg)
 }
 
 
+
 //_____________________________________________________________________________
 // Pop and return a message from the head 
 std::unique_ptr<std::string> CircularMessageBuffer::PopFront()
@@ -51,7 +72,7 @@ std::unique_ptr<std::string> CircularMessageBuffer::PopFront()
     boost::mutex::scoped_lock lock(io_mutex_);
     if (_message_buffer.empty())
     {
-        LOG4CXX_ERROR(_logger,"pop from empty message buffer");
+        //LOG4CXX_ERROR(_logger,"pop from empty message buffer");
         return std::unique_ptr<std::string>(nullptr); 
     }
     LOG4CXX_DEBUG(_logger,"popping a message");

@@ -33,6 +33,7 @@ class CircularMessageBuffer
     //_____________________________________________________________________________
     // Push a message onto the tail
     bool PushBack(const std::string &msg);
+    bool PushBack( std::unique_ptr<std::string> pMessage );
 
     //_____________________________________________________________________________
     // Pop and return a message from the head 

@@ -26,6 +26,7 @@ class GameTest : public ::testing::Test {
 };
 
 
+/*
 //_____________________________________________________________________________
 // Initial State: all 0 
 TEST_F(GameTest, InitialState) {
@@ -66,6 +67,7 @@ TEST_F(GameTest, RemovePlayer) {
     g.RemovePlayer(a2);
     EXPECT_EQ(0,g.NumPlayers());
 }
+*/
 
 
 TEST_F(GameTest, Start) {

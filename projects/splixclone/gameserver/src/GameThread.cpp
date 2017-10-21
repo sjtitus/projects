@@ -22,23 +22,21 @@ void GameThread::DoWork()
 {
     try
     {
-        LOG4CXX_TRACE(_logger,"GameThread::DoWork: starting work for thread " << _name);
+        LOG4CXX_TRACE(_logger,"GameThread:: starting");
         while (true)
         {
-            LOG4CXX_TRACE(_logger,"GameThread::DoWork: sleeping for 2 seconds");
-            boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
-            LOG4CXX_TRACE(_logger,"GameThread::DoWork: checking for commands");
             std::unique_ptr<std::string> pMessage = _pGame->CommandBuffer().PopFront();
             if (pMessage)
             {
-                LOG4CXX_TRACE(_logger,"GameThread::DoWork: got a command --> " << *pMessage); 
+                LOG4CXX_TRACE(_logger,"GameThread:: command received: " << *pMessage); 
             }
+            boost::this_thread::sleep_for(boost::chrono::seconds(1)); 
             boost::this_thread::interruption_point();
         }
     }
     catch (const boost::thread_interrupted& e)
     {
-        LOG4CXX_TRACE(_logger,"GameThread::DoWork: stopping");
+        LOG4CXX_TRACE(_logger,"GameThread:: stopping");
     }
 }
 

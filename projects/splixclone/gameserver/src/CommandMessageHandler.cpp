@@ -20,8 +20,9 @@ void CommandMessageHandler::HandleRead( std::unique_ptr<std::string> pMessage )
     LOG4CXX_TRACE(logger_,"CommandMessageHandler::HandleRead: session " << pSession_.get());
     LOG4CXX_TRACE(logger_,"CommandMessageHandler::HandleRead: message: " << *pMessage); 
     LOG4CXX_TRACE(logger_,"CommandMessageHandler::HandleRead: pushing to command buffer"); 
-    bool pushed = _c_pGame->CommandBuffer().PushBack(*pMessage);
-    LOG4CXX_TRACE(logger_,"CommandMessageHandler::HandleRead: message push failed: " << pushed); 
+    //bool pushed = _c_pGame->CommandBuffer().PushBack(*pMessage);
+    _c_pGame->CommandBuffer().PushBack(std::move(pMessage));
+    //LOG4CXX_TRACE(logger_,"CommandMessageHandler::HandleRead: message push failed: " << pushed); 
 }
 
 void CommandMessageHandler::HandleWrite( size_t bytesWritten )

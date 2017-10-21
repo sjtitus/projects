@@ -33,8 +33,8 @@ void CommandThread::DoWork()
 {
     try
     {
-        LOG4CXX_TRACE(_logger,"CommandThread::DoWork: starting work for thread " << _name);
-        LOG4CXX_TRACE(_logger,"CommandThread::DoWork: command socket " << _pGame->_COMMAND_SOCKET_FILE);
+        LOG4CXX_TRACE(_logger,"CommandThread: starting");
+        LOG4CXX_TRACE(_logger,"CommandThread: command socket " << _pGame->_COMMAND_SOCKET_FILE);
  
         // Set up a local socket server to handle incoming commands 
         unlink(_pGame->_COMMAND_SOCKET_FILE.c_str());
@@ -42,13 +42,14 @@ void CommandThread::DoWork()
         LocalSocketServer<CommandMessageHandler> localServer(_io_service, _pGame->_COMMAND_SOCKET_FILE);
 
         // start the server 
+        LOG4CXX_TRACE(_logger,"CommandThread: listening for commands"); 
         localServer.Start();
         _io_service.run();
-        LOG4CXX_TRACE(_logger,"CommandThread::DoWork: exiting");
+        LOG4CXX_TRACE(_logger,"CommandThread: exiting");
     }
     catch (const boost::thread_interrupted& e)
     {
-        LOG4CXX_TRACE(_logger,"CommandThread::DoWork: stopping");
+        LOG4CXX_TRACE(_logger,"CommandThread: stopping");
     }
 }
 
@@ -57,7 +58,7 @@ void CommandThread::DummyWork()
 {
     while (true)
     {
-        LOG4CXX_TRACE(_logger,"CommandThread::DummyWork: sleeping for 2 seconds");
+        LOG4CXX_TRACE(_logger,"CommandThread: sleeping for 2 seconds");
         boost::this_thread::sleep_for(boost::chrono::seconds(2)); 
         boost::this_thread::interruption_point();
     }

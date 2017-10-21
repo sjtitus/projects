@@ -50,7 +50,8 @@ class Game
         //_______________________________________________
         // Game Management
         void Start();
-        void Stop();         
+        void Stop();
+        void Join();         
        
         //_______________________________________________
         // Constants 
