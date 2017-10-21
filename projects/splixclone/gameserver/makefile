@@ -40,8 +40,8 @@ SRC_FILES = src/Board.cpp                   \
             src/PlayerMoveThread.cpp   		\
             src/GameThread.cpp       		\
             src/CircularMessageBuffer.cpp	\
- 			src/Main.cpp
-# 			src/UnitTest.cpp
+ 			src/UnitTest.cpp
+ 			#src/Main.cpp
 # src/log4cxx_test.cpp
     
 #______________________________________________________________________________
