@@ -31,17 +31,17 @@ SRC_FILES = src/Board.cpp                   \
             src/Array2D.cpp                 \
             src/Player.cpp                  \
             src/SimpleException.cpp         \
+			src/MessageHandler.cpp          \
             src/CommandMessageHandler.cpp   \
             src/LocalSocketSession.cpp      \
-            src/MessageHandler.cpp          \
             src/LocalSocketServer.cpp       \
             src/WorkerThread.cpp       		\
             src/CommandThread.cpp    		\
             src/PlayerMoveThread.cpp   		\
             src/GameThread.cpp       		\
             src/CircularMessageBuffer.cpp	\
- 			src/UnitTest.cpp
- 			#src/Main.cpp
+ 			src/Main.cpp
+# 			src/UnitTest.cpp
 # src/log4cxx_test.cpp
     
 #______________________________________________________________________________

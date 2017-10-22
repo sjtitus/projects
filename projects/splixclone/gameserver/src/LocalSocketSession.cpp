@@ -37,7 +37,7 @@ namespace com { namespace dimension3designs {
     // Constructor
     LocalSocketSession::LocalSocketSession( boost::asio::io_service& io_service )
         :socket_(io_service), 
-         pMessageHandler_(NULL)
+         pMessageHandler_(std::unique_ptr<MessageHandler>(nullptr)) 
     {
         LOG4CXX_TRACE(logger_,"LocalSocketSession: Construct: " << this);
     } 

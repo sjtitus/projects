@@ -44,6 +44,8 @@ void CommandThread::DoWork()
         // start the server 
         LOG4CXX_TRACE(_logger,"CommandThread: listening for commands"); 
         localServer.Start();
+
+        // run asynchronous IO: will block until all async IO is complete
         _io_service.run();
         LOG4CXX_TRACE(_logger,"CommandThread: exiting");
     }

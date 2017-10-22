@@ -21,6 +21,8 @@ class GameThread: public WorkerThread
     void DoWork() override; 
     
     private:
+        void ProcessCommands( std::vector<std::unique_ptr<std::string>> &commandVector );
+        std::vector<std::unique_ptr<std::string>> FetchCommands();
         Game *_pGame;
 };
 

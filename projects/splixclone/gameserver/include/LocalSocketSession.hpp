@@ -53,9 +53,17 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     //__________________________________________________________________________
     // SetMessageHandler: Set the handler that provides async read/write
     // callbacks. 
-    void SetMessageHandler( MessageHandler::Ptr &pMessageHandler )
+    void SetMessageHandler( std::unique_ptr<MessageHandler> &pMessageHandler )
     {
-        pMessageHandler_ = pMessageHandler;
+        pMessageHandler_ = std::move(pMessageHandler);
+    }
+
+    //__________________________________________________________________________
+    // Start: start asynch IO on the session by invoking the app-specific
+    // handler's start function (which will read or write to the socket). 
+    void Start()
+    {
+        pMessageHandler_->Start();
     }
 
     //__________________________________________________________________________
@@ -97,7 +105,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     boost::asio::streambuf response_;
  
     // Message handler providing application-level callbacks
-    MessageHandler::Ptr pMessageHandler_; 
+    std::unique_ptr<MessageHandler> pMessageHandler_;
 
     private:    
         // logging

@@ -5,28 +5,26 @@
  * LocalSocketServer
  * Server that asynchronously handles communications for a specified Unix
  * domain socket. The server establishes a LocalSocketSession for each
- * incoming connection, and then passes ownership of the connected
- * session to a specified LocalSocketSessionHandler, which handles
- * message traffic for the session.
+ * incoming connection.
  *
  * Uses boost::asio  
  *_____________________________________________________________________________
 */
 
 #include <cstdio>
+#include <unordered_map>
 #include <iostream>
 #include <boost/asio.hpp>   
 
 #include <cstdio>
 #include <iostream>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
+//#include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>   
 
 #include "Logging.hpp"
 #include "LocalSocketSession.hpp"
-#include "LocalSocketSessionHandler.hpp"
 #include "SimpleException.hpp"
 
 
@@ -110,12 +108,33 @@ class LocalSocketServer
 
         try
         {
-            LOG4CXX_TRACE(logger_,"LocalSocketServer::AcceptHandler calling handler for session=" << new_session.get());
-            // Hand the newly-connected session off to the handler 
-            sessionHandler_.HandleSession(new_session);
+            LOG4CXX_TRACE(logger_,"LocalSocketServer::AcceptHandler assigning handler and starting session=" << new_session.get());
            
-            // Setup for the next connection: reset the smart pointer with a new session for next
-            // incoming connection.
+            // Create a new message handler for this session: it will use the raw session pointer for reading/writing
+            LocalSocketSession *pSession = new_session.get(); 
+            std::unique_ptr<MessageHandler> pMessageHandler(new T(pSession));
+            
+            // Wire it up to the session: session owns the handler
+            new_session->SetMessageHandler(pMessageHandler);         
+ 
+            // Save the session in the hash of active sessions: the server owns the sessions
+            const void *address = static_cast<const void*>(new_session.get());
+            std::stringstream ss;
+            ss << address;  
+            std::string id = ss.str();
+            LOG4CXX_TRACE(logger_,"LocalSocketServer::AcceptHandler saving active session " << id << " to active connection hash"); 
+            auto iresult = activeConnectionHash_.insert(std::make_pair(id,new_session));
+            if (!iresult.second)
+            {
+                // non-unique id: abort
+                RAISE_EXCEPTION("LocalSocketServer::AcceptHandler: failed saving active session "+id+" (non-unique id?)");
+            }
+
+            // Start asynch IO on the session
+            new_session->Start();
+
+            // Now set up for the next connection: reset the smart pointer with a new session 
+            // for the next incoming connection.
             LOG4CXX_DEBUG(logger_,"LocalSocketServer::AcceptHandler: resetting for next connection"); 
             new_session.reset(new LocalSocketSession(io_service_));
      
@@ -141,7 +160,9 @@ class LocalSocketServer
   private:
     boost::asio::io_service& io_service_;
     stream_protocol::acceptor acceptor_;
-    LocalSocketSessionHandler<T> sessionHandler_;
+   
+    // Active connections 
+    std::unordered_map<std::string, boost::shared_ptr<LocalSocketSession>>  activeConnectionHash_;
     std::string file_;
     
   private:    

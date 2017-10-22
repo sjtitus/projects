@@ -51,9 +51,9 @@ class LocalSocketSessionHandler
             // deletion, and subsequent MessageHandler deletion.
             // ________________________________________________________________________________________
            
-            // create a new message handler that will be only reference to the session 
+            // create a new message handler that will contain the only reference to the session 
             MessageHandler::Ptr pHandler(new T(pSession));
-            // set the session's message handler
+            // set the session's message handler, which is the only reference to the message handler
             pSession->SetMessageHandler(pHandler);
             LOG4CXX_DEBUG(logger_,"LocalSocketSessionHandler::HandleSession session " << pSession.get() << ": starting message handler");
             pHandler->Start();

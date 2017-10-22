@@ -13,7 +13,7 @@ class Game;
 class CommandMessageHandler: public MessageHandler
 {
     public:
-        CommandMessageHandler(boost::shared_ptr<LocalSocketSession> &pSession);
+        CommandMessageHandler(LocalSocketSession *pSession);
         void HandleRead( std::unique_ptr<std::string> pMessage ) override;
         void HandleWrite( size_t bytesWritten ) override;
         void HandleReadError( const boost::system::error_code& error ) override;

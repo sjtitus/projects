@@ -5,7 +5,6 @@
 */
  
 #include "LocalSocketSession.hpp"
-#include "LocalSocketSessionHandler.hpp"
 #include "LocalSocketServer.hpp"
 #include "CommandMessageHandler.hpp"
 #include "Logging.hpp"
@@ -106,17 +105,6 @@ class LocalSocketSessionTest : public ::testing::Test {
 TEST_F(LocalSocketSessionTest, InitialState) {
     TMSG("LocalSocketSession Initial State\n");
     LocalSocketSession session(io_service); 
-}
-
-//_____________________________________________________________________________
-// LocalSocketSessionHandler 
-TEST_F(LocalSocketSessionTest, LocalSocketSessionHandler) {
-    TMSG("LocalSocketSessionHandler\n");
-    LocalSocketSession::Ptr pSession(new LocalSocketSession(io_service)); 
-    LocalSocketSessionHandler<TestMessageHandler> sessionHandler; 
-    sessionHandler.HandleSession(pSession);
-    pSession.reset();
-    EXPECT_EQ(TestMessageHandler::started, true); 
 }
 
 TEST_F(LocalSocketSessionTest, LocalSocketServer) {

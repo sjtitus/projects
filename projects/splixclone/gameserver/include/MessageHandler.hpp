@@ -22,14 +22,14 @@ class MessageHandler
 {
     public:
 
-        MessageHandler(boost::shared_ptr<LocalSocketSession> &pSession)
+        MessageHandler(LocalSocketSession *pSession)
         :pSession_(pSession) 
         {
         }
         
         ~MessageHandler()
         {
-            LOG4CXX_TRACE(logger_,"MessageHandler::destructor: session " << pSession_.get());
+            LOG4CXX_TRACE(logger_,"MessageHandler::destructor: session " << pSession_);
         }
 
         typedef boost::shared_ptr<MessageHandler> Ptr;
@@ -43,7 +43,7 @@ class MessageHandler
     
     protected:
         // the session being used for I/O 
-        boost::shared_ptr<LocalSocketSession> pSession_;
+        LocalSocketSession *pSession_;
     
     public: 
         // logging
