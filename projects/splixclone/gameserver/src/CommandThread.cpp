@@ -18,7 +18,12 @@ CommandThread::CommandThread( const std::string &name, Game *pGame )
     :WorkerThread(name),
      _pGame(pGame)
 {
-    LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: construct thread " << _name << "(game " << _pGame << ")"); 
+    LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: construct command server using socket file " << _pGame->_COMMAND_SOCKET_FILE);
+    unlink(_pGame->_COMMAND_SOCKET_FILE.c_str());
+    _pCommandServer = std::unique_ptr<LocalSocketServer<CommandMessageHandler>>(
+        new LocalSocketServer<CommandMessageHandler>(_io_service, _pGame->_COMMAND_SOCKET_FILE)
+    );
+    LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: constructed thread " << _name << "(game " << _pGame << ")"); 
 }
     
 void CommandThread::Stop()
@@ -34,16 +39,13 @@ void CommandThread::DoWork()
     try
     {
         LOG4CXX_TRACE(_logger,"CommandThread: starting");
-        LOG4CXX_TRACE(_logger,"CommandThread: command socket " << _pGame->_COMMAND_SOCKET_FILE);
  
-        // Set up a local socket server to handle incoming commands 
-        unlink(_pGame->_COMMAND_SOCKET_FILE.c_str());
+        // Tell the command message handler class about the game singleton
         CommandMessageHandler::SetGame(_pGame);
-        LocalSocketServer<CommandMessageHandler> localServer(_io_service, _pGame->_COMMAND_SOCKET_FILE);
 
-        // start the server 
-        LOG4CXX_TRACE(_logger,"CommandThread: listening for commands"); 
-        localServer.Start();
+        // start the command server: will listen for commands
+        LOG4CXX_TRACE(_logger,"CommandThread: starting command server (listening for commands)"); 
+        _pCommandServer->Start();
 
         // run asynchronous IO: will block until all async IO is complete
         _io_service.run();

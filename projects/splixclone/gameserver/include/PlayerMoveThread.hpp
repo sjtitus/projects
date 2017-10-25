@@ -7,6 +7,7 @@
 */
 
 #include "WorkerThread.hpp"
+#include <boost/asio.hpp>   
 
 namespace com { namespace dimension3designs {
 
@@ -22,6 +23,7 @@ class PlayerMoveThread: public WorkerThread
     
     private:
         Game *_pGame;
+        boost::asio::io_service _io_service;    // io_service to handle async io
 };
 
 

@@ -8,6 +8,7 @@
 
 namespace com { namespace dimension3designs {
 
+// All CommandMessageHandlers (one per command socket) share the same singleton Game
 class Game;
 
 class CommandMessageHandler: public MessageHandler

@@ -7,6 +7,9 @@
 */
 
 #include "WorkerThread.hpp"
+#include "LocalSocketServer.hpp"
+#include "CommandMessageHandler.hpp"
+#include <memory>
 #include <boost/asio.hpp>   
 
 
@@ -20,12 +23,15 @@ class CommandThread: public WorkerThread
 {
     public:
         CommandThread( const std::string &name, Game *pGame );
+        LocalSocketServer<CommandMessageHandler>* CommandServer() {  return _pCommandServer.get(); }
+        
         void DoWork() override; 
         void Stop() override;
 
     private:
-        Game *_pGame;                           // game thread is running in
-        boost::asio::io_service _io_service;    // io_service to handle async io
+        Game *_pGame;                                                                   // game thread is running in
+        boost::asio::io_service _io_service;                                            // io_service to handle async io
+        std::unique_ptr<LocalSocketServer<CommandMessageHandler>> _pCommandServer;      // game command server 
         
         void DummyWork();
 };
