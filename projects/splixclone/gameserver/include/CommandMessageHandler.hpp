@@ -8,24 +8,17 @@
 
 namespace com { namespace dimension3designs {
 
-// All CommandMessageHandlers (one per command socket) share the same singleton Game
-class Game;
-
 class CommandMessageHandler: public MessageHandler
 {
     public:
         CommandMessageHandler(LocalSocketSession *pSession);
+        ~CommandMessageHandler();
         void HandleRead( std::unique_ptr<std::string> pMessage ) override;
         void HandleWrite( size_t bytesWritten ) override;
         void HandleReadError( const boost::system::error_code& error ) override;
         void HandleWriteError( const boost::system::error_code& error ) override;
         void Start() override;
         void Close() override;
-
-        static void SetGame(Game *pGame) { _c_pGame = pGame; }
-
-    private:
-        static Game *_c_pGame;  
 };
 
 }}

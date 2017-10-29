@@ -31,19 +31,29 @@ SRC_FILES = src/Board.cpp                   \
             src/Array2D.cpp                 \
             src/Player.cpp                  \
             src/SimpleException.cpp         \
-			src/MessageHandler.cpp          \
+            src/MessageHandler.cpp          \
             src/CommandMessageHandler.cpp   \
             src/LocalSocketSession.cpp      \
             src/LocalSocketServer.cpp       \
-            src/WorkerThread.cpp       		\
-            src/CommandThread.cpp    		\
-            src/PlayerMoveThread.cpp   		\
-            src/GameThread.cpp       		\
-            src/CircularMessageBuffer.cpp	\
- 			src/Main.cpp
-# 			src/UnitTest.cpp
+            src/WorkerThread.cpp            \
+            src/CommandThread.cpp           \
+            src/PlayerMoveThread.cpp        \
+            src/GameThread.cpp              \
+            src/CircularMessageBuffer.cpp   \
+            src/Main.cpp
+#           src/UnitTest.cpp
 # src/log4cxx_test.cpp
-    
+
+SRC_FILES = src/LocalSocketSession.cpp          \
+            src/LocalSocketSessionHandler.cpp   \
+            src/CommandSessionHandler.cpp       \
+            src/SimpleException.cpp         \
+            src/MessageHandler.cpp          \
+            src/CommandMessageHandler.cpp   \
+            src/LocalSocketServer.cpp       \
+            src/Main.cpp
+#           src/UnitTest.cpp
+ 
 #______________________________________________________________________________
 # Include the master makefile
 # Defines targets 'all' and 'clean'

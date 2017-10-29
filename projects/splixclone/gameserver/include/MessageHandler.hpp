@@ -23,17 +23,19 @@ class MessageHandler
     public:
 
         MessageHandler(LocalSocketSession *pSession)
-        :pSession_(pSession) 
+        :_pSession(pSession) 
         {
         }
         
-        ~MessageHandler()
+        virtual ~MessageHandler()
         {
-            LOG4CXX_TRACE(logger_,"MessageHandler::destructor: session " << pSession_);
+            // Note: the session always owns the message handler, and the handler
+            // will not be destroyed until the session is. Since session is
+            // destroyed elsewhere, we need not free it here.            
+            LOG4CXX_TRACE(_logger,"MessageHandler::destructor: NULLing (not freeing) session " << _pSession);
+            _pSession = NULL;
         }
 
-        typedef boost::shared_ptr<MessageHandler> Ptr;
-        
         virtual void HandleRead( std::unique_ptr<std::string> pMessage ) = 0;
         virtual void HandleWrite( size_t bytesWritten ) = 0;
         virtual void HandleReadError( const boost::system::error_code& error ) = 0;
@@ -43,11 +45,11 @@ class MessageHandler
     
     protected:
         // the session being used for I/O 
-        LocalSocketSession *pSession_;
+        LocalSocketSession *_pSession;
     
     public: 
         // logging
-        static log4cxx::LoggerPtr  logger_;
+        static log4cxx::LoggerPtr  _logger;
 };
 
 }}

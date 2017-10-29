@@ -5,12 +5,12 @@
 
 #include "UnitTest.hpp"
 
+#include "UnitTest_LocalSocketSession.cpp"
 
-#include "UnitTest_CircularMessageBuffer.cpp"
 /*
+#include "UnitTest_CircularMessageBuffer.cpp"
 #include "UnitTest_Game.cpp"
 #include "UnitTest_WorkerThread.cpp"
-#include "UnitTest_LocalSocketSession.cpp"
 #include "UnitTest_Position.cpp"
 #include "UnitTest_Board.cpp"
 #include "UnitTest_Player.cpp"

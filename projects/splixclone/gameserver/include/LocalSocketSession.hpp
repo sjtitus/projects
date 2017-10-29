@@ -14,15 +14,16 @@
 
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/bind.hpp>
-#include <type_traits>
+//#include <boost/bind.hpp>
+//#include <type_traits>
 #include <boost/asio.hpp>
 #include <string>
-#include <deque>
+//#include <deque>
 #include <memory>
 
 #include "MessageHandler.hpp"
 #include "Logging.hpp"
+
 
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
 
@@ -55,20 +56,20 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     // callbacks. 
     void SetMessageHandler( std::unique_ptr<MessageHandler> &pMessageHandler )
     {
-        pMessageHandler_ = std::move(pMessageHandler);
+        _pMessageHandler = std::move(pMessageHandler);
     }
-
+    
     //__________________________________________________________________________
     // Start: start asynch IO on the session by invoking the app-specific
     // handler's start function (which will read or write to the socket). 
     void Start()
     {
-        pMessageHandler_->Start();
+        _pMessageHandler->Start();
     }
 
     //__________________________________________________________________________
     // Socket: access to the underlying socket
-    stream_protocol::socket& Socket() { return socket_; }
+    stream_protocol::socket& Socket() { return _socket; }
    
     //__________________________________________________________________________
     // Connect: Synchronous client connect to the socket file 
@@ -98,18 +99,18 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     void WriteCallback( const boost::system::error_code& error, size_t bytes_transferred );
     
     // Local unix-domain socket
-    stream_protocol::socket socket_;
+    stream_protocol::socket _socket;
 
     // Data buffers 
-    boost::asio::streambuf request_;
-    boost::asio::streambuf response_;
+    boost::asio::streambuf _request;
+    boost::asio::streambuf _response;
  
     // Message handler providing application-level callbacks
-    std::unique_ptr<MessageHandler> pMessageHandler_;
+    std::unique_ptr<MessageHandler> _pMessageHandler;
 
     private:    
         // logging
-        static log4cxx::LoggerPtr  logger_;
+        static log4cxx::LoggerPtr  _logger;
 };
 
 
