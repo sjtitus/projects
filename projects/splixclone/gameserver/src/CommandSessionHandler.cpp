@@ -22,6 +22,7 @@ void CommandSessionHandler::HandleSession( LocalSocketSession::Ptr &pSession )
     std::unique_ptr<MessageHandler> pHandler(new CommandMessageHandler(pSession.get()));
     LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSessions: binding new command message handler " << pHandler.get());
     pSession->SetMessageHandler(pHandler);
+    pSession->Start();
 }
 
 
