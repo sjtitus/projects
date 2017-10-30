@@ -8,6 +8,8 @@
 #ifndef _LOCALSOCKETSESSIONHANDLER_H_
 #define _LOCALSOCKETSESSIONHANDLER_H_
 
+#include <unordered_map>
+
 #include "LocalSocketSession.hpp"
 #include "Logging.hpp"
 
@@ -25,7 +27,18 @@ class LocalSocketSessionHandler
     public:
         LocalSocketSessionHandler();
         virtual ~LocalSocketSessionHandler() {};
+       
+        // Abstract class 
         virtual void HandleSession( LocalSocketSession::Ptr &pSession ) = 0;
+       
+        // Session management 
+        void SaveSession(LocalSocketSession::Ptr& session);
+        LocalSocketSession::Ptr GetSession(const std::string &sessionId);
+        void DeleteSession(const std::string &sessionId);
+
+    protected:
+        // Hash
+        std::unordered_map<std::string, LocalSocketSession::Ptr>    _sessionHash;
 
         static log4cxx::LoggerPtr  logger_;     // logging
 };

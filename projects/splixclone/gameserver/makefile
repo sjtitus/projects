@@ -47,10 +47,11 @@ SRC_FILES = src/Board.cpp                   \
 SRC_FILES = src/LocalSocketSession.cpp          \
             src/LocalSocketSessionHandler.cpp   \
             src/CommandSessionHandler.cpp       \
-            src/SimpleException.cpp         \
-            src/MessageHandler.cpp          \
-            src/CommandMessageHandler.cpp   \
-            src/LocalSocketServer.cpp       \
+            src/SimpleException.cpp         	\
+            src/MessageHandler.cpp          	\
+            src/CommandMessageHandler.cpp   	\
+            src/LocalSocketServer.cpp       	\
+            src/Game.cpp       					\
             src/Main.cpp
 #           src/UnitTest.cpp
  

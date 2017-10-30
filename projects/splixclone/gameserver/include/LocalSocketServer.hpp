@@ -2,12 +2,12 @@
 #define _LOCALSOCKETSERVER_H_
 /*_____________________________________________________________________________
  * 
- * LocalSocketServer
+ *  LocalSocketServer
  *
- * Server that asynchronously handles communications for a specified Unix
- * domain socket. The server establishes a LocalSocketSession for each
- * incoming connection, then passes the session to a specified 
- * LocalSocketSessionHandler for handling of asynch IO.
+ *  Server that asynchronously handles communications for a specified Unix
+ *  domain socket. The server establishes a LocalSocketSession for each
+ *  incoming connection, then passes the session to a specified 
+ *  LocalSocketSessionHandler for handling of asynch IO.
  *_____________________________________________________________________________
 */
 
@@ -47,7 +47,6 @@ class LocalSocketServer
 
 
   private:
-    
     //_________________________________________________________________________
     // Accept: async accept of connection on a new session, using
     // async callback AcceptHandler 

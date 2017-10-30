@@ -20,8 +20,9 @@ CommandThread::CommandThread( const std::string &name, Game *pGame )
 {
     LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: construct command server using socket file " << _pGame->_COMMAND_SOCKET_FILE);
     unlink(_pGame->_COMMAND_SOCKET_FILE.c_str());
-    _pCommandServer = std::unique_ptr<LocalSocketServer<CommandMessageHandler>>(
-        new LocalSocketServer<CommandMessageHandler>(_io_service, _pGame->_COMMAND_SOCKET_FILE)
+    std::unique_ptr<LocalSocketSessionHandler> pSessionHandler(new CommandSessionHandler());
+    _pCommandServer = std::unique_ptr<LocalSocketServer>(
+        new LocalSocketServer(_io_service, _pGame->_COMMAND_SOCKET_FILE,pSessionHandler)
     );
     LOG4CXX_TRACE(_logger,"CommandThread::CommandThread: constructed thread " << _name << "(game " << _pGame << ")"); 
 }

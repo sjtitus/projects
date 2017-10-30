@@ -18,10 +18,18 @@ CommandSessionHandler::CommandSessionHandler()
 
 void CommandSessionHandler::HandleSession( LocalSocketSession::Ptr &pSession )
 {
-    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession session " << pSession.get());
+    //long uc = pSession.use_count();
+    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession: session " << pSession.get());
+    
+    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession: creating/binding command message handler");
     std::unique_ptr<MessageHandler> pHandler(new CommandMessageHandler(pSession.get()));
-    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSessions: binding new command message handler " << pHandler.get());
     pSession->SetMessageHandler(pHandler);
+    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession: command message handler " << pHandler.get());
+    
+    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession: saving session " << pSession.get());
+    SaveSession(pSession);
+    
+    LOG4CXX_TRACE(logger_,"CommandSessionHandler::HandleSession: starting session " << pSession.get());
     pSession->Start();
 }
 

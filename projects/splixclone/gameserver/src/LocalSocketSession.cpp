@@ -40,6 +40,12 @@ namespace com { namespace dimension3designs {
          _pMessageHandler(std::unique_ptr<MessageHandler>(nullptr)) 
     {
         LOG4CXX_TRACE(_logger,"LocalSocketSession: Construct: " << this);
+        // compute unique ID of the session as string version of address
+        const void *address = static_cast<const void*>(this);
+        std::stringstream ss;
+        ss << address;  
+        _id = ss.str();
+        LOG4CXX_TRACE(_logger,"LocalSocketSession: id: " << _id);
     } 
     
     //__________________________________________________________________________
@@ -133,8 +139,7 @@ namespace com { namespace dimension3designs {
         _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
         _socket.close(); 
     }
-
-
+    
 
     //__________________________________________________________________________
     //  HELPERS

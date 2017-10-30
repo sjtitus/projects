@@ -2,9 +2,10 @@
 #define _GAME_H_
 
 /*______________________________________________________________________________
- * Game 
- * The game consists of a board and a set of players that occupy the 
- * board.
+ * 
+ *  Game
+ *
+ *  The splixclone game.
  *______________________________________________________________________________
 */
 
@@ -28,10 +29,14 @@ namespace com { namespace dimension3designs {
 class Game
 {
     public:
-
+        
         //_______________________________________________
-        // Constructors
-        Game(uint32_t board_width, uint32_t board_height);
+        // Singleton access
+        static Game& Instance()
+        {
+            static Game gameInstance(100,100);
+            return gameInstance;
+        } 
 
         //_______________________________________________
         // Accessors
@@ -59,30 +64,47 @@ class Game
         const std::string _PLAYERMOVE_SOCKET_FILE;
 
 
+        //_______________________________________________
+        // I/O
+        // Comm
         CircularMessageBuffer& CommandBuffer() { return _commandBuffer; }
         
 
     private:
-        std::unique_ptr<com::dimension3designs::Board>                                      _pBoard;        // the board
-        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>>    _playerHash;    // hash of players by id
-        static log4cxx::LoggerPtr                                                           _logger;        // logging
+        
+        //_______________________________________________
+        // Constructor is private because Game
+        // is a singleton.
+        Game(uint32_t board_width, uint32_t board_height);
+       
+        // Prevent copy construction and assignment 
+        Game(Game const&); 
+        void operator=(Game const&);
+
 
         //_______________________________________________
+        // The board
+        std::unique_ptr<com::dimension3designs::Board> _pBoard;
+
+        //_______________________________________________
+        // The players
+        // Hash of player objects by unique player ID 
+        std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::Player>> _playerHash; 
+        
+        //_______________________________________________
         // Command Thread
-        // Thread that receives and queues game commands 
-        // (start/stop game, add a player, remove a player, ...)
-        std::unique_ptr<com::dimension3designs::CommandThread>      _pCommandThread;
+        // Receives and queues game commands 
+        std::unique_ptr<com::dimension3designs::CommandThread> _pCommandThread;
 
         //_______________________________________________
         // PlayerMove Thread 
-        // Thread that receives and queues player moves
-        // coming from the web application 
-        std::unique_ptr<com::dimension3designs::PlayerMoveThread>   _pPlayerMoveThread;
+        // Receives and queues player moves
+        std::unique_ptr<com::dimension3designs::PlayerMoveThread> _pPlayerMoveThread;
  
         //_______________________________________________
-        // Game Thread 
-        // Thread that runs the main game loop
-        std::unique_ptr<com::dimension3designs::GameThread>         _pGameThread;
+        // Game Thread
+        // Runs game main rendering loop
+        std::unique_ptr<com::dimension3designs::GameThread> _pGameThread;
         
         //_______________________________________________
         // Circular Buffer that queues commands
@@ -90,10 +112,14 @@ class Game
         CircularMessageBuffer _commandBuffer;
        
         //_______________________________________________
-        // Hash of circular buffers 
-        // Each buffer queues player moves for a single player 
+        // Hash of circular buffers for player moves 
+        // Each buffer queues player moves for 1 player 
         static const size_t PLAYERMOVE_BUFFER_SIZE = 512; 
         std::unordered_map<std::string, std::unique_ptr<com::dimension3designs::CircularMessageBuffer>>    _playerMoveBufferHash;
+       
+        //_______________________________________________
+        // Logging 
+        static log4cxx::LoggerPtr _logger;
  
 };
  

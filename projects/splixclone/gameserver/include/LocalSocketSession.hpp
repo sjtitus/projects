@@ -4,21 +4,18 @@
 /*_____________________________________________________________________________
  *
  *  LocalSocketSession
+ * 
  *  Session for asynchronous read/write of string messages over a Unix  
- *  domain (local) socket. Invokes a MessageHandler 
- *  for application-specific message handling.
+ *  domain (local) socket. Uses a MessageHandler for application-specific 
+ *  message handling (async callbacks).
  *
- *  Uses boost::asio for asynch network handling.  
  * ____________________________________________________________________________
 */
 
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
-//#include <boost/bind.hpp>
-//#include <type_traits>
 #include <boost/asio.hpp>
 #include <string>
-//#include <deque>
 #include <memory>
 
 #include "MessageHandler.hpp"
@@ -32,16 +29,12 @@ using boost::asio::local::stream_protocol;
 
 namespace com { namespace dimension3designs {
 
-//______________________________________________________________________________
+//______________________________________
 // LocalSocketSession
-// A bidirectional asynchronous socket connection used to send and receive
-// strings over a local (Unix domain) socket.
-// End-of-message delimiter is "\n"
 
 class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSession>
 {
   public:
-    
     //__________________________________________________________________________
     // Types 
     typedef boost::shared_ptr<LocalSocketSession> Ptr;
@@ -61,7 +54,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     
     //__________________________________________________________________________
     // Start: start asynch IO on the session by invoking the app-specific
-    // handler's start function (which will read or write to the socket). 
+    // handler's start function.
     void Start()
     {
         _pMessageHandler->Start();
@@ -72,7 +65,7 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     stream_protocol::socket& Socket() { return _socket; }
    
     //__________________________________________________________________________
-    // Connect: Synchronous client connect to the socket file 
+    // Connect: Synchronous client connect to a socket file endpoint
     void Connect( const std::string &localFile );
 
     //__________________________________________________________________________
@@ -86,6 +79,11 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     //__________________________________________________________________________
     // Close: Close the session 
     void Close();
+    
+    //__________________________________________________________________________
+    // Id: Return the unique ID for the session 
+    const std::string& Id() { return _id; }
+
 
   private:
 
@@ -105,12 +103,15 @@ class LocalSocketSession : public boost::enable_shared_from_this<LocalSocketSess
     boost::asio::streambuf _request;
     boost::asio::streambuf _response;
  
-    // Message handler providing application-level callbacks
+    // Message handler providing application-level asynch callbacks
     std::unique_ptr<MessageHandler> _pMessageHandler;
 
-    private:    
-        // logging
-        static log4cxx::LoggerPtr  _logger;
+    // Unique ID for the session 
+    std::string _id;
+
+  private:    
+    // logging
+    static log4cxx::LoggerPtr  _logger;
 };
 
 
